@@ -8,17 +8,8 @@ public class DataHandler
 {
     public enum Result
     {
-        CreateSuccess = 1,
-        CreateFail,
-        DeleteSuccess,
-        DeleteFailByWrongId,
-        DeleteFailByWrongPw,
-        LoginSuccess,
-        LoginFailByWrongId,
-        LoginFailByWrongPw,
-        LoginFailByAlreadyLogin,
-        LogoutSuccess,
-        LogoutFail,
+        Success = 0,
+        Fail,
     };
 
     public enum Source
@@ -38,6 +29,7 @@ public class DataHandler
     public Dictionary<Socket, string> LoginUser;
 
     AccountDatabase database;
+    RoomManager roomManager;
 
     object receiveLock;
     object sendLock;
@@ -59,6 +51,8 @@ public class DataHandler
         LoginUser = new Dictionary<Socket, string>();
 
         SetNotifier();
+
+        roomManager = new RoomManager();
 
         Thread handleThread = new Thread(new ThreadStart(DataHandle));
         handleThread.Start();
@@ -119,214 +113,214 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.GameClose, GameClose);
     }
 
-    public ServerPacketId CreateAccount(byte[] data)
-    {
-        Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 가입요청");
+    //public ServerPacketId CreateAccount(byte[] data)
+    //{
+    //    Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 가입요청");
 
-        AccountPacket accountPacket = new AccountPacket(data);
-        AccountPacketData accountData = accountPacket.GetData();
+    //    AccountPacket accountPacket = new AccountPacket(data);
+    //    AccountPacketData accountData = accountPacket.GetData();
 
-        Console.WriteLine("아이디 : " + accountData.Id + "패스워드 : " + accountData.password);
+    //    Console.WriteLine("아이디 : " + accountData.Id + "패스워드 : " + accountData.password);
 
-        try
-        {
-            if (database.AddAccountData(accountData.Id, accountData.password))
-            {
-                msg[0] = (byte)Result.CreateSuccess;
-                Console.WriteLine("가입 성공");
-            }
-            else
-            {
-                msg[0] = (byte)Result.CreateFail;
-                Console.WriteLine("가입 실패");
-            }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::AddPlayerData 에러");
-            Console.WriteLine("가입 실패");
-            msg[0] = (byte)Result.CreateFail;
-        }
+    //    try
+    //    {
+    //        if (database.AddAccountData(accountData.Id, accountData.password))
+    //        {
+    //            msg[0] = (byte)Result.CreateSuccess;
+    //            Console.WriteLine("가입 성공");
+    //        }
+    //        else
+    //        {
+    //            msg[0] = (byte)Result.CreateFail;
+    //            Console.WriteLine("가입 실패");
+    //        }
+    //    }
+    //    catch
+    //    {
+    //        Console.WriteLine("DataHandler::AddPlayerData 에러");
+    //        Console.WriteLine("가입 실패");
+    //        msg[0] = (byte)Result.CreateFail;
+    //    }
 
-        Array.Resize(ref msg, 1);
-        msg = CreateResultPacket(msg, ServerPacketId.CreateResult);
+    //    Array.Resize(ref msg, 1);
+    //    msg = CreateResultPacket(msg, ServerPacketId.CreateResult);
 
-        return ServerPacketId.CreateResult;
-    }
+    //    return ServerPacketId.CreateResult;
+    //}
 
-    public ServerPacketId DeleteAccount(byte[] data)
-    {
-        Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 탈퇴요청");
+    //public ServerPacketId DeleteAccount(byte[] data)
+    //{
+    //    Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 탈퇴요청");
 
-        AccountPacket accountPacket = new AccountPacket(data);
-        AccountPacketData accountData = accountPacket.GetData();
+    //    AccountPacket accountPacket = new AccountPacket(data);
+    //    AccountPacketData accountData = accountPacket.GetData();
 
-        Console.WriteLine("아이디 : " + accountData.Id + "패스워드 : " + accountData.Id);
+    //    Console.WriteLine("아이디 : " + accountData.Id + "패스워드 : " + accountData.Id);
 
-        try
-        {
-            if (database.DeleteAccountData(accountData.Id, accountData.password) == Result.DeleteSuccess)
-            {
-                msg[0] = (byte)Result.DeleteSuccess;
-                Console.WriteLine("탈퇴 성공");
-            }
-            else if(database.DeleteAccountData(accountData.Id, accountData.password) == Result.DeleteFailByWrongId)
-            {
-                msg[0] = (byte)Result.DeleteFailByWrongId;
-                Console.WriteLine("탈퇴 실패 - 아이디");
-            }
-            else if (database.DeleteAccountData(accountData.Id, accountData.password) == Result.DeleteFailByWrongPw)
-            {
-                msg[0] = (byte)Result.DeleteFailByWrongPw;
-                Console.WriteLine("탈퇴 실패 - 비밀번호");
-            }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::RemovePlayerData 에러");
-            Console.WriteLine("탈퇴 실패");
-            msg[0] = (byte)Result.DeleteFailByWrongId;
-        }
+    //    try
+    //    {
+    //        if (database.DeleteAccountData(accountData.Id, accountData.password) == Result.DeleteSuccess)
+    //        {
+    //            msg[0] = (byte)Result.DeleteSuccess;
+    //            Console.WriteLine("탈퇴 성공");
+    //        }
+    //        else if(database.DeleteAccountData(accountData.Id, accountData.password) == Result.DeleteFailByWrongId)
+    //        {
+    //            msg[0] = (byte)Result.DeleteFailByWrongId;
+    //            Console.WriteLine("탈퇴 실패 - 아이디");
+    //        }
+    //        else if (database.DeleteAccountData(accountData.Id, accountData.password) == Result.DeleteFailByWrongPw)
+    //        {
+    //            msg[0] = (byte)Result.DeleteFailByWrongPw;
+    //            Console.WriteLine("탈퇴 실패 - 비밀번호");
+    //        }
+    //    }
+    //    catch
+    //    {
+    //        Console.WriteLine("DataHandler::RemovePlayerData 에러");
+    //        Console.WriteLine("탈퇴 실패");
+    //        msg[0] = (byte)Result.DeleteFailByWrongId;
+    //    }
 
-        Array.Resize(ref msg, 1);
-        msg = CreateResultPacket(msg, ServerPacketId.DeleteResult);
+    //    Array.Resize(ref msg, 1);
+    //    msg = CreateResultPacket(msg, ServerPacketId.DeleteResult);
 
-        return ServerPacketId.DeleteResult;
-    }
+    //    return ServerPacketId.DeleteResult;
+    //}
 
-    public ServerPacketId Login(byte[] data)
-    {
-        Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 로그인");
+    //public ServerPacketId Login(byte[] data)
+    //{
+    //    Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 로그인");
 
-        AccountPacket accountPacket = new AccountPacket(data);
-        AccountPacketData accountData = accountPacket.GetData();
+    //    AccountPacket accountPacket = new AccountPacket(data);
+    //    AccountPacketData accountData = accountPacket.GetData();
 
-        Console.WriteLine("아이디 : " + accountData.Id + "비밀번호 : " + accountData.password);
+    //    Console.WriteLine("아이디 : " + accountData.Id + "비밀번호 : " + accountData.password);
 
-        try
-        {
-            if (database.AccountData.Contains(accountData.Id))
-            {
-                if (((AccountData)database.AccountData[accountData.Id]).PW == accountData.password)
-                {
-                    if (!LoginUser.ContainsValue(accountData.Id))
-                    {
-                        msg[0] = (byte)Result.LoginSuccess;
-                        Console.WriteLine("로그인 성공");
-                        LoginUser.Add(tcpPacket.client, accountData.Id);
-                    }
-                    else
-                    {
-                        Console.WriteLine("현재 접속중인 아이디입니다.");
+    //    try
+    //    {
+    //        if (database.AccountData.Contains(accountData.Id))
+    //        {
+    //            if (((AccountData)database.AccountData[accountData.Id]).PW == accountData.password)
+    //            {
+    //                if (!LoginUser.ContainsValue(accountData.Id))
+    //                {
+    //                    msg[0] = (byte)Result.LoginSuccess;
+    //                    Console.WriteLine("로그인 성공");
+    //                    LoginUser.Add(tcpPacket.client, accountData.Id);
+    //                }
+    //                else
+    //                {
+    //                    Console.WriteLine("현재 접속중인 아이디입니다.");
 
-                        if (CompareIP(GetSocket(accountData.Id).RemoteEndPoint.ToString(), tcpPacket.client.RemoteEndPoint.ToString()))
-                        {
-                            LoginUser.Remove(GetSocket(accountData.Id));
-                            Console.WriteLine("현재 접속중 해제");
-                        }                        
-                        msg[0] = (byte)Result.LoginFailByAlreadyLogin;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("패스워드가 맞지 않습니다.");
-                    msg[0] = (byte)Result.LoginFailByWrongPw;
-                }
-            }
-            else
-            {
-                Console.WriteLine("존재하지 않는 아이디입니다.");
-                msg[0] = (byte)Result.LoginFailByWrongId;
-            }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::Login.ContainsValue 에러");
-            msg[0] = (byte)Result.LoginFailByWrongId;
-        }
+    //                    if (CompareIP(GetSocket(accountData.Id).RemoteEndPoint.ToString(), tcpPacket.client.RemoteEndPoint.ToString()))
+    //                    {
+    //                        LoginUser.Remove(GetSocket(accountData.Id));
+    //                        Console.WriteLine("현재 접속중 해제");
+    //                    }                        
+    //                    msg[0] = (byte)Result.LoginFailByAlreadyLogin;
+    //                }
+    //            }
+    //            else
+    //            {
+    //                Console.WriteLine("패스워드가 맞지 않습니다.");
+    //                msg[0] = (byte)Result.LoginFailByWrongPw;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            Console.WriteLine("존재하지 않는 아이디입니다.");
+    //            msg[0] = (byte)Result.LoginFailByWrongId;
+    //        }
+    //    }
+    //    catch
+    //    {
+    //        Console.WriteLine("DataHandler::Login.ContainsValue 에러");
+    //        msg[0] = (byte)Result.LoginFailByWrongId;
+    //    }
 
-        Array.Resize(ref msg, 1);
+    //    Array.Resize(ref msg, 1);
 
-        msg = CreateResultPacket(msg, ServerPacketId.LoginResult);
+    //    msg = CreateResultPacket(msg, ServerPacketId.LoginResult);
 
-        return ServerPacketId.LoginResult;
-    }
+    //    return ServerPacketId.LoginResult;
+    //}
 
-    public ServerPacketId ReLogin(byte[] data)
-    {
-        Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 재로그인요청");
+    //public ServerPacketId ReLogin(byte[] data)
+    //{
+    //    Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 재로그인요청");
 
-        AccountPacket accountPacket = new AccountPacket(data);
-        AccountPacketData accountData = accountPacket.GetData();
+    //    AccountPacket accountPacket = new AccountPacket(data);
+    //    AccountPacketData accountData = accountPacket.GetData();
 
-        Console.WriteLine("아이디 : " + accountData.Id);
+    //    Console.WriteLine("아이디 : " + accountData.Id);
 
-        try
-        {
-            if (database.AccountData.Contains(accountData.Id))
-            {
-                if (!LoginUser.ContainsValue(accountData.Id))
-                {
-                    msg[0] = (byte)Result.LoginSuccess;
-                    Console.WriteLine("로그인 성공");
-                    LoginUser.Add(tcpPacket.client, accountData.Id);
-                }
-                else
-                {
-                    Console.WriteLine("현재 접속중인 아이디입니다.");
+    //    try
+    //    {
+    //        if (database.AccountData.Contains(accountData.Id))
+    //        {
+    //            if (!LoginUser.ContainsValue(accountData.Id))
+    //            {
+    //                msg[0] = (byte)Result.LoginSuccess;
+    //                Console.WriteLine("로그인 성공");
+    //                LoginUser.Add(tcpPacket.client, accountData.Id);
+    //            }
+    //            else
+    //            {
+    //                Console.WriteLine("현재 접속중인 아이디입니다.");
 
-                    if (CompareIP(GetSocket(accountData.Id).RemoteEndPoint.ToString(), tcpPacket.client.RemoteEndPoint.ToString()))
-                    {
-                        LoginUser.Remove(GetSocket(accountData.Id));
-                        Console.WriteLine("현재 접속중 해제");
-                    }
-                    msg[0] = (byte)Result.LoginFailByAlreadyLogin;
-                }
-            }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::ReLogin.ContainsValue 에러");
-            msg[0] = (byte)Result.LoginFailByWrongId;
-        }
+    //                if (CompareIP(GetSocket(accountData.Id).RemoteEndPoint.ToString(), tcpPacket.client.RemoteEndPoint.ToString()))
+    //                {
+    //                    LoginUser.Remove(GetSocket(accountData.Id));
+    //                    Console.WriteLine("현재 접속중 해제");
+    //                }
+    //                msg[0] = (byte)Result.LoginFailByAlreadyLogin;
+    //            }
+    //        }
+    //    }
+    //    catch
+    //    {
+    //        Console.WriteLine("DataHandler::ReLogin.ContainsValue 에러");
+    //        msg[0] = (byte)Result.LoginFailByWrongId;
+    //    }
 
-        return ServerPacketId.LoginResult;
-    }
+    //    return ServerPacketId.LoginResult;
+    //}
 
-    public ServerPacketId Logout(byte[] data)
-    {
-        Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 로그아웃요청");
+    //public ServerPacketId Logout(byte[] data)
+    //{
+    //    Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 로그아웃요청");
 
-        string id = LoginUser[tcpPacket.client];
+    //    string id = LoginUser[tcpPacket.client];
 
-        msg = new byte[1];
+    //    msg = new byte[1];
 
-        try
-        {
-            if (LoginUser.ContainsValue(id))
-            {
-                LoginUser.Remove(tcpPacket.client);
-                Console.WriteLine(id + "로그아웃");
-                msg[0] = (byte)Result.LogoutSuccess;
-            }
-            else
-            {
-                Console.WriteLine("로그인되어있지 않은 아이디입니다. : " + id);
-                msg[0] = (byte)Result.LogoutFail;
-            }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::Logout.ContainsValue 에러");
-            msg[0] = (byte)Result.LogoutFail;
-        }
+    //    try
+    //    {
+    //        if (LoginUser.ContainsValue(id))
+    //        {
+    //            LoginUser.Remove(tcpPacket.client);
+    //            Console.WriteLine(id + "로그아웃");
+    //            msg[0] = (byte)Result.LogoutSuccess;
+    //        }
+    //        else
+    //        {
+    //            Console.WriteLine("로그인되어있지 않은 아이디입니다. : " + id);
+    //            msg[0] = (byte)Result.LogoutFail;
+    //        }
+    //    }
+    //    catch
+    //    {
+    //        Console.WriteLine("DataHandler::Logout.ContainsValue 에러");
+    //        msg[0] = (byte)Result.LogoutFail;
+    //    }
 
-        Array.Resize(ref msg, 1);
+    //    Array.Resize(ref msg, 1);
 
-        msg = CreateResultPacket(msg, ServerPacketId.LoginResult);
+    //    msg = CreateResultPacket(msg, ServerPacketId.LoginResult);
 
-        return ServerPacketId.None;
-    }
+    //    return ServerPacketId.None;
+    //}
 
     public ServerPacketId GameClose(byte[] data)
     {
@@ -351,6 +345,35 @@ public class DataHandler
         }
 
         return ServerPacketId.None;
+    }
+
+    //방 생성
+    public ServerPacketId CreateRoom(byte[] data)
+    {
+        Console.WriteLine("방 생성");
+        CreateRoomPacket createRoomPacket = new CreateRoomPacket(data);
+        CreateRoomData createRoomData = createRoomPacket.GetData();
+
+        if (roomManager.CreateRoom(tcpPacket.client, createRoomData.roomName, createRoomData.dungeonId, createRoomData.dungeonLevel) > 0)
+        {
+            byte[] msg = new byte[1];
+            msg[0] = (byte)Result.Success;
+            byte[] packet = CreateResultPacket(msg, ServerPacketId.CreateRoomResult);
+        }
+        else
+        {
+            Array.Resize(ref msg, 1);
+            msg[0] = (byte)Result.Fail;
+            msg = CreateResultPacket(msg, ServerPacketId.CreateRoomResult);
+        }
+
+        return ServerPacketId.CreateRoomResult;
+    }
+
+    //방 입장
+    public void EnterRoom()
+    {
+
     }
 
     public void MatchUser()

@@ -47,6 +47,7 @@ public class AccountPacket : IPacket<AccountPacketData>
 
 	public AccountPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
 	{
+        m_data = new AccountPacketData();
 		AccountSerializer serializer = new AccountSerializer();
 		serializer.SetDeserializedData(data);
 		serializer.Deserialize(ref m_data);

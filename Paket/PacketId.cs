@@ -15,4 +15,5 @@ public enum ServerPacketId
     DeleteResult,
     LoginResult,
     Match,
+    CreateRoomResult,
 }
