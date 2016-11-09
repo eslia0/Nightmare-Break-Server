@@ -8,6 +8,8 @@ public class RoomManager
 
     Room[] room;
 
+    public Room[] Room { get { return room; } }
+
     //방 생성 및 번호 부여
     public RoomManager()
     {
@@ -82,7 +84,7 @@ public class Room
     private Socket host;
     private int playerNum;
     private int[] classId;
-    private string[] id;
+    private string[] name;
     private int[] level;
 
     public int PlayerNum { get { return playerNum; } }
@@ -96,7 +98,7 @@ public class Room
         dungeonId = 0;
         dungeonLevel = 0;
         classId = new int[RoomManager.maxPlayerNum];
-        id = new string[RoomManager.maxPlayerNum];
+        name = new string[RoomManager.maxPlayerNum];
         level = new int[RoomManager.maxPlayerNum];
     }
 
@@ -109,7 +111,7 @@ public class Room
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
         classId = new int[RoomManager.maxPlayerNum];
-        id = new string[RoomManager.maxPlayerNum];
+        name = new string[RoomManager.maxPlayerNum];
         level = new int[RoomManager.maxPlayerNum];
     }
 
@@ -126,7 +128,7 @@ public class Room
         return -1;
     }
 
-    public bool AddPlayer(int newClassId, string newId, int newLevel)
+    public bool AddPlayer(int newClassId, string newName, int newLevel)
     {
         int index = FindEmptySlot();
 
@@ -137,7 +139,7 @@ public class Room
         }
 
         classId[index] = newClassId;
-        id[index] = newId;
+        name[index] = newName;
         level[index] = newLevel;
         playerNum++;
 
@@ -147,7 +149,7 @@ public class Room
     public void DeletePlayer(int index)
     {
         classId[index] = 0;
-        id[index] = "";
+        name[index] = "";
         level[index] = 0;
         playerNum--;
     }
@@ -162,8 +164,8 @@ public class Room
         level[origSlot] = level[DestiSlot];
         level[DestiSlot] = tempInt;
 
-        string tempString = id[origSlot];
-        id[origSlot] = id[DestiSlot];
-        id[DestiSlot] = tempString;
+        string tempString = name[origSlot];
+        name[origSlot] = name[DestiSlot];
+        name[DestiSlot] = tempString;
     }
 }

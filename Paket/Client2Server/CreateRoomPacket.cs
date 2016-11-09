@@ -67,7 +67,7 @@ public class CreateRoomPacket : IPacket<CreateRoomData>
 
     public int GetPacketId()
     {
-        return (int)ClientPacketId.Create;
+        return (int)ClientPacketId.CreateRoom;
     }
 }
 

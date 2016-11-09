@@ -26,7 +26,7 @@ public class DataHandler
     public Queue<TcpPacket> receiveMsgs;
     public Queue<TcpPacket> sendMsgs;
 
-    public Dictionary<Socket, string> LoginUser;
+    public Dictionary<Socket, LoginCharacter> LoginUser;
 
     AccountDatabase database;
     RoomManager roomManager;
@@ -48,10 +48,11 @@ public class DataHandler
         sendMsgs = sendQueue;
         receiveLock = newReceiveLock;
         sendLock = newSendLock;
-        LoginUser = new Dictionary<Socket, string>();
+        LoginUser = new Dictionary<Socket, LoginCharacter>();
 
         SetNotifier();
 
+        database = AccountDatabase.Instance;
         roomManager = new RoomManager();
 
         Thread handleThread = new Thread(new ThreadStart(DataHandle));
@@ -113,40 +114,40 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.GameClose, GameClose);
     }
 
-    //public ServerPacketId CreateAccount(byte[] data)
-    //{
-    //    Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 가입요청");
+    public ServerPacketId CreateAccount(byte[] data)
+    {
+        Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 가입요청");
 
-    //    AccountPacket accountPacket = new AccountPacket(data);
-    //    AccountPacketData accountData = accountPacket.GetData();
+        AccountPacket accountPacket = new AccountPacket(data);
+        AccountPacketData accountData = accountPacket.GetData();
 
-    //    Console.WriteLine("아이디 : " + accountData.Id + "패스워드 : " + accountData.password);
+        Console.WriteLine("아이디 : " + accountData.Id + "패스워드 : " + accountData.password);
 
-    //    try
-    //    {
-    //        if (database.AddAccountData(accountData.Id, accountData.password))
-    //        {
-    //            msg[0] = (byte)Result.CreateSuccess;
-    //            Console.WriteLine("가입 성공");
-    //        }
-    //        else
-    //        {
-    //            msg[0] = (byte)Result.CreateFail;
-    //            Console.WriteLine("가입 실패");
-    //        }
-    //    }
-    //    catch
-    //    {
-    //        Console.WriteLine("DataHandler::AddPlayerData 에러");
-    //        Console.WriteLine("가입 실패");
-    //        msg[0] = (byte)Result.CreateFail;
-    //    }
+        try
+        {
+            if (database.AddAccountData(accountData.Id, accountData.password))
+            {
+                msg[0] = (byte)Result.Success;
+                Console.WriteLine("가입 성공");
+            }
+            else
+            {
+                msg[0] = (byte)Result.Fail;
+                Console.WriteLine("가입 실패");
+            }
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::AddPlayerData 에러");
+            Console.WriteLine("가입 실패");
+            msg[0] = (byte)Result.Fail;
+        }
 
-    //    Array.Resize(ref msg, 1);
-    //    msg = CreateResultPacket(msg, ServerPacketId.CreateResult);
+        Array.Resize(ref msg, 1);
+        msg = CreateResultPacket(msg, ServerPacketId.CreateResult);
 
-    //    return ServerPacketId.CreateResult;
-    //}
+        return ServerPacketId.CreateResult;
+    }
 
     //public ServerPacketId DeleteAccount(byte[] data)
     //{
@@ -332,9 +333,9 @@ public class DataHandler
 
             if (LoginUser.ContainsKey(tcpPacket.client))
             {
-                string Id = LoginUser[tcpPacket.client];
-                database.FileSave(Id + ".data", database.GetAccountData(Id));
-                database.UserData.Remove(Id);
+                LoginCharacter character = LoginUser[tcpPacket.client];
+                database.FileSave(character.Id + ".data", database.GetAccountData(character));
+                database.UserData.Remove(character.Id);
 
                 LoginUser.Remove(tcpPacket.client);
             }
@@ -371,11 +372,18 @@ public class DataHandler
     }
 
     //방 입장
-    public void EnterRoom()
+    public void EnterRoom(byte[] data)
     {
+        Console.WriteLine("방 입장");
+        EnterRoomPacket enterRoomPacket = new EnterRoomPacket(data);
+        EnterRoomData enterRoomData = enterRoomPacket.GetData();
 
+        UserData userData = database.GetAccountData(LoginUser[tcpPacket.client]);
+        HeroData heroData = userData.HeroData[LoginUser[tcpPacket.client].characterId];
+        roomManager.Room[enterRoomData.roomNum].AddPlayer(heroData.HClass, heroData.Name, heroData.Level);
     }
 
+    //유저 매칭
     public void MatchUser()
     {
         Console.WriteLine("유저 매칭");
@@ -459,7 +467,7 @@ public class DataHandler
 
     bool CompareIP(string ip1, string ip2)
     {
-        if(ip1.Substring(0, ip1.IndexOf(":")) == ip2.Substring(0, ip2.IndexOf(":")))
+        if (ip1.Substring(0, ip1.IndexOf(":")) == ip2.Substring(0, ip2.IndexOf(":")))
         {
             return true;
         }
@@ -471,9 +479,9 @@ public class DataHandler
 
     public Socket GetSocket(string Id)
     {
-        foreach (KeyValuePair<Socket, string> client in LoginUser)
+        foreach (KeyValuePair<Socket, LoginCharacter> client in LoginUser)
         {
-            if (client.Value == Id)
+            if (client.Value.Id == Id)
             {
                 return client.Key;
             }
@@ -499,19 +507,19 @@ public class DataHandler
         return desArray;
     }
 
-    public static byte[] CombineByte (byte[] array1, byte[] array2)
-	{
-		byte[] array3 = new byte[array1.Length + array2.Length];
-		Array.Copy (array1, 0, array3, 0, array1.Length);
-		Array.Copy (array2, 0, array3, array1.Length, array2.Length);
-		return array3;
-	}
+    public static byte[] CombineByte(byte[] array1, byte[] array2)
+    {
+        byte[] array3 = new byte[array1.Length + array2.Length];
+        Array.Copy(array1, 0, array3, 0, array1.Length);
+        Array.Copy(array2, 0, array3, array1.Length, array2.Length);
+        return array3;
+    }
 
-	public static byte[] CombineByte (byte[] array1, byte[] array2, byte[] array3)
-	{
-		byte[] array4 = CombineByte (CombineByte (array1, array2), array3);;
-		return array4;
-	}
+    public static byte[] CombineByte(byte[] array1, byte[] array2, byte[] array3)
+    {
+        byte[] array4 = CombineByte(CombineByte(array1, array2), array3);
+        return array4;
+    }
 }
 
 [Serializable]
@@ -525,6 +533,12 @@ public class TcpClient
 		client = newClient;
 		Id = "";
 	}
+}
+
+public struct LoginCharacter
+{
+    public string Id;
+    public byte characterId;
 }
 
 public class HeaderData

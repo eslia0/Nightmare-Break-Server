@@ -7,6 +7,23 @@ public class AccountDatabase
 {
     public const string accountDataFile = "AccountData.data";
 
+    private static AccountDatabase instance;
+
+    public static AccountDatabase Instance
+    {
+        get
+        {
+            if(instance == null)
+            {
+                return new AccountDatabase();
+            }
+            else
+            {
+                return instance;
+            }
+        }
+    }
+
     Hashtable accountData;
     Hashtable userData;
     FileStream fs;
@@ -90,28 +107,28 @@ public class AccountDatabase
                     FileInfo file = new FileInfo(Id + ".data");
                     file.Delete();
 
-                    return DataHandler.Result.DeleteSuccess;
+                    return DataHandler.Result.Success;
                 }
                 else
                 {
                     Console.WriteLine("잘못된 비밀번호");
-                    return DataHandler.Result.DeleteFailByWrongPw;
+                    return DataHandler.Result.Fail;
                 }
             }
             else
             {
                 Console.WriteLine("존재하지 않는 아이디");
-                return DataHandler.Result.DeleteFailByWrongId;
+                return DataHandler.Result.Fail;
             }
         }
         catch
         {
             Console.WriteLine("Database::DeleteAccountData.Contains 에러");
-            return DataHandler.Result.DeleteFailByWrongId;
+            return DataHandler.Result.Fail;
         }
     }
 
-    public UserData GetAccountData(string Id)
+    public UserData GetAccountData(LoginCharacter Id)
     {
         if (userData.Contains(Id))
         {
@@ -119,11 +136,11 @@ public class AccountDatabase
         }
         else
         {
-            return AddUserData(Id);
+            return null;
         }
     }
 
-    public UserData AddUserData(string Id)
+    public UserData AddUserData(LoginCharacter Id)
     {
         fs.Close();
         //파일이 있으면 가져오고 없으면 새로 만듬
@@ -146,7 +163,7 @@ public class AccountDatabase
         //없을 경우에는 새로 만들어서 가져옴
         else
         {
-            newUserData = new UserData(Id);
+            newUserData = new UserData(Id.Id);
         }
 
         //데이터를 유저리스트 테이블에 추가한 뒤 반환
