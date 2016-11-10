@@ -3,7 +3,6 @@ public class AccountPacket : IPacket<AccountPacketData>
 {
     public class AccountSerializer : Serializer
     {
-
         public bool Serialize(AccountPacketData data)
         {
             bool ret = true;
