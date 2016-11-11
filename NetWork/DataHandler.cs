@@ -417,7 +417,14 @@ public class DataHandler
     {
         for (int i = 0; i < 2; i++)
         {
-            if (DataReceiver.clients[i] == null)
+            try
+            {
+                if (DataReceiver.clients[i] == null)
+                {
+                    return;
+                }
+            }
+            catch
             {
                 return;
             }
