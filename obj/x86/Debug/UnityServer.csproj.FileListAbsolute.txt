@@ -1,0 +1,49 @@
+C:\Users\user\Documents\Projects\UnityServer\UnityServer\bin\Debug\UnityServer.exe
+C:\Users\user\Documents\Projects\UnityServer\UnityServer\bin\Debug\UnityServer.pdb
+C:\Users\user\Documents\Projects\UnityServer\UnityServer\obj\x86\Debug\UnityServer.exe
+C:\Users\user\Documents\Projects\UnityServer\UnityServer\obj\x86\Debug\UnityServer.pdb
+C:\Users\ele\Documents\카카오톡 받은 파일\UnityServer\UnityServer\obj\x86\Debug\UnityServer.exe
+C:\Users\ele\Documents\카카오톡 받은 파일\UnityServer\UnityServer\obj\x86\Debug\UnityServer.pdb
+C:\Users\ele\Documents\카카오톡 받은 파일\UnityServer\UnityServer\bin\Debug\UnityServer.exe
+C:\Users\ele\Documents\카카오톡 받은 파일\UnityServer\UnityServer\bin\Debug\UnityServer.pdb
+C:\Users\user\Documents\0816\카카오~1\UnityServer\UnityServer\obj\x86\Debug\UnityServer.exe
+C:\Users\user\Documents\0816\카카오~1\UnityServer\UnityServer\bin\Debug\UnityServer.exe
+C:\Users\user\Documents\0816\카카오~1\UnityServer\UnityServer\bin\Debug\UnityServer.pdb
+C:\Users\user\Documents\0816\카카오~1\UnityServer\UnityServer\obj\x86\Debug\UnityServer.pdb
+C:\Users\user\Desktop\UnityServer\obj\x86\Debug\UnityServer.exe
+C:\Users\user\Desktop\UnityServer\obj\x86\Debug\UnityServer.pdb
+C:\Users\user\Desktop\UnityServer\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\user\Desktop\UnityServer\bin\Debug\UnityServer.exe
+C:\Users\user\Desktop\UnityServer\bin\Debug\UnityServer.pdb
+C:\Users\user\Documents\CastleHero\UnityServer\obj\x86\Debug\UnityServer.exe
+C:\Users\user\Documents\CastleHero\UnityServer\obj\x86\Debug\UnityServer.pdb
+C:\Users\user\Documents\CastleHero\UnityServer\bin\Debug\UnityServer.exe
+C:\Users\user\Documents\CastleHero\UnityServer\bin\Debug\UnityServer.pdb
+C:\Users\user\Documents\CastleHero\UnityServer\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\ele\Documents\CastleHero\UnityServer\obj\x86\Debug\UnityServer.exe
+C:\Users\ele\Documents\CastleHero\UnityServer\obj\x86\Debug\UnityServer.pdb
+C:\Users\ele\Documents\CastleHero\UnityServer\bin\Debug\UnityServer.exe
+C:\Users\ele\Documents\CastleHero\UnityServer\bin\Debug\UnityServer.pdb
+C:\Users\ele\Documents\CastleHero\UnityServer\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\Elle\Downloads\CastleHero\UnityServer\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\Elle\Downloads\CastleHero\UnityServer\obj\x86\Debug\UnityServer.exe
+D:\CastleHero\UnityServer\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+D:\CastleHero\UnityServer\obj\x86\Debug\UnityServer.exe
+D:\CastleHero\UnityServer\bin\Debug\UnityServer.exe
+D:\CastleHero\UnityServer\bin\Debug\UnityServer.pdb
+D:\CastleHero\UnityServer\obj\x86\Debug\UnityServer.pdb
+D:\Nightmare Break Server\obj\x86\Debug\UnityServer.exe
+D:\Nightmare Break Server\obj\x86\Debug\UnityServer.pdb
+D:\Nightmare Break Server\bin\Debug\UnityServer.exe
+D:\Nightmare Break Server\bin\Debug\UnityServer.pdb
+D:\Nightmare Break Server\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\Elle\Documents\Nightmare Break Server\obj\x86\Debug\UnityServer.exe
+C:\Users\Elle\Documents\Nightmare Break Server\obj\x86\Debug\UnityServer.pdb
+C:\Users\Elle\Documents\Nightmare Break Server\bin\Debug\UnityServer.exe
+C:\Users\Elle\Documents\Nightmare Break Server\bin\Debug\UnityServer.pdb
+C:\Users\Elle\Documents\Nightmare Break Server\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\Elle\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.exe
+C:\Users\Elle\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.pdb
+C:\Users\Elle\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache
+C:\Users\Elle\Documents\Nightmare-Break-Server\bin\Debug\UnityServer.exe
+C:\Users\Elle\Documents\Nightmare-Break-Server\bin\Debug\UnityServer.pdb
