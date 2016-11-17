@@ -63,7 +63,7 @@ public class DataHandler
     {
         while (true)
         {
-            if (receiveMsgs.Count != 0)
+            if (receiveMsgs.Count > 0)
             {
                 //패킷을 Dequeue 한다 패킷 : 메시지 타입 + 메시지 내용, 소켓
                 lock (receiveLock)
@@ -78,19 +78,18 @@ public class DataHandler
                     }
                 }
 
-                //출처 분리
-                byte source = tcpPacket.msg[0];
-
-                //타입 분리
-                //byte[] Id = ResizeByteArray(1, UnityServer.packetId, ref msg);
-                byte Id = tcpPacket.msg[1];
-
                 HeaderData headerData = new HeaderData();
+                HeaderSerializer headerSerializer = new HeaderSerializer();
+                headerSerializer.SetDeserializedData(tcpPacket.msg);
+                headerSerializer.Deserialize(ref headerData);
+
+                ResizeByteArray(0, UnityServer.packetSource + UnityServer.packetId, ref tcpPacket.msg);
 
                 //Dictionary에 등록된 델리게이트 메소드에서 PacketId를 반환받는다.
-                if (m_notifier.TryGetValue(Id, out recvNotifier))
+                if (m_notifier.TryGetValue(headerData.Id, out recvNotifier))
                 {
                     ServerPacketId packetId = recvNotifier(msg);
+
                     //send 할 id를 반환받음
                     if (packetId != ServerPacketId.None)
                     {
@@ -101,8 +100,8 @@ public class DataHandler
                 else
                 {
                     Console.WriteLine("DataHandler::DataHandle.TryGetValue 에러 ");
-                    Console.WriteLine("패킷 출처 : " + source);
-                    Console.WriteLine("패킷 ID : " + Id);
+                    Console.WriteLine("패킷 출처 : " + headerData.source);
+                    Console.WriteLine("패킷 ID : " + headerData.Id);
                     headerData.Id = (byte)ServerPacketId.None;
                 }
             }
@@ -325,11 +324,10 @@ public class DataHandler
 
     public ServerPacketId GameClose(byte[] data)
     {
-        Console.WriteLine("게임종료");
-
         try
         {
             Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + "가 접속을 종료했습니다.");
+            tcpPacket.client.Close();
 
             if (LoginUser.ContainsKey(tcpPacket.client))
             {
@@ -357,7 +355,7 @@ public class DataHandler
 
         if (roomManager.CreateRoom(tcpPacket.client, createRoomData.roomName, createRoomData.dungeonId, createRoomData.dungeonLevel) > 0)
         {
-            byte[] msg = new byte[1];
+            msg = new byte[1];
             msg[0] = (byte)Result.Success;
             byte[] packet = CreateResultPacket(msg, ServerPacketId.CreateRoomResult);
         }
@@ -380,18 +378,20 @@ public class DataHandler
 
         UserData userData = database.GetAccountData(LoginUser[tcpPacket.client]);
         HeroData heroData = userData.HeroData[LoginUser[tcpPacket.client].characterId];
-        roomManager.Room[enterRoomData.roomNum].AddPlayer(heroData.HClass, heroData.Name, heroData.Level);
+        roomManager.Room[enterRoomData.roomNum].AddPlayer(tcpPacket.client, heroData.HClass, heroData.Name, heroData.Level);
     }
 
     //유저 매칭
-    public void MatchUser()
+    public void MatchUser(byte[] data)
     {
         Console.WriteLine("유저 매칭");
-        string[] ip = new string[matchUserNum];
 
-        for (int i = 0; i < matchUserNum; i++)
+        int roomNum = data[0];
+        string[] ip = new string[roomManager.Room[roomNum].PlayerNum];
+
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            ip[i] = DataReceiver.clients[i].RemoteEndPoint.ToString();
+            ip[i] = roomManager.Room[roomNum].Socket[i].RemoteEndPoint.ToString();
         }
 
         MatchData matchData = new MatchData(ip);
@@ -400,37 +400,13 @@ public class DataHandler
 
         for (int i = 0; i < matchUserNum; i++)
         {
-            if (DataReceiver.clients[i] != null)
+            if (roomManager.Room[roomNum].Socket[i] != null)
             {
-                TcpPacket packet = new TcpPacket(msg, DataReceiver.clients[i]);
+                TcpPacket packet = new TcpPacket(msg, roomManager.Room[roomNum].Socket[i]);
                 Console.WriteLine(packet.msg.Length);
                 sendMsgs.Enqueue(packet);
             }
-
-            DataReceiver.clients[i] = null;
         }
-
-        DataReceiver.userNum = 0;
-    }
-
-    public void CheckUser()
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            try
-            {
-                if (DataReceiver.clients[i] == null)
-                {
-                    return;
-                }
-            }
-            catch
-            {
-                return;
-            }
-        }
-
-        MatchUser();
     }
 
     byte[] CreateHeader<T>(IPacket<T> data, ServerPacketId Id)

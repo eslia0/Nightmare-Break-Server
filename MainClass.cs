@@ -24,7 +24,6 @@ public class UnityServer
         while (true)
         {
             Thread.Sleep(1000);
-            dataHandler.CheckUser();
         }
     }
 }

@@ -14,9 +14,6 @@ public class DataReceiver
     AsyncCallback asyncReceiveLengthCallBack;
 	AsyncCallback asyncReceiveDataCallBack;
 
-    public static Socket[] clients;
-    public static int userNum;
-
     //초기화
     //소켓 초기화 및 콜백 메소드 설정, BeginAccept
     public DataReceiver(Queue<TcpPacket> newQueue, IPAddress newAddress, int newPort, object newLock)
@@ -31,9 +28,6 @@ public class DataReceiver
         asyncAcceptCallback = new AsyncCallback (HandleAsyncAccept);
 		asyncReceiveLengthCallBack = new AsyncCallback (HandleAsyncReceiveLength);
 		asyncReceiveDataCallBack = new AsyncCallback (HandleAsyncReceiveData);
-
-        clients = new Socket[DataHandler.matchUserNum];
-        userNum = 0;
 
         listenSock.BeginAccept (asyncAcceptCallback, (Object)listenSock);
 	}
@@ -59,10 +53,6 @@ public class DataReceiver
         {
             Console.WriteLine(clientSock.RemoteEndPoint.ToString() + " 접속");
 
-            clients[userNum++] = clientSock;
-
-            TcpClient tcpClient = new TcpClient(clientSock);
-
             AsyncData asyncData = new AsyncData(clientSock);
             clientSock.BeginReceive(asyncData.msg, 0, UnityServer.packetLength, SocketFlags.None, asyncReceiveLengthCallBack, (Object)asyncData);
         }
@@ -83,15 +73,16 @@ public class DataReceiver
         }
         catch
         {
-            Console.ForegroundColor = ConsoleColor.Red;
+            //Console.ForegroundColor = ConsoleColor.Red;
+            //Console.ForegroundColor = ConsoleColor.Black;
             Console.WriteLine("DataReceiver::HandleAsyncReceiveLength.EndReceive 에러");
-            Console.ForegroundColor = ConsoleColor.Black;
+            clientSock.Close();
             return;
         }
 
         if (asyncData.msgSize <= 0)
         {
-            Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료");
+            Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료.");
             clientSock.Close();
             return;
         }
@@ -111,9 +102,7 @@ public class DataReceiver
             //데이타 받기를 실패하거나 변환에 실패했을 때 - ReceiveLength를 재실행
             catch
             {
-                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("DataReceiver::HandleAsyncReceiveLength.BitConverter 에러");
-                Console.ForegroundColor = ConsoleColor.Black;
                 asyncData = new AsyncData(clientSock);
                 clientSock.BeginReceive(asyncData.msg, 0, UnityServer.packetLength, SocketFlags.None, asyncReceiveLengthCallBack, (Object)asyncData);
             }
@@ -144,7 +133,7 @@ public class DataReceiver
 
         if (asyncData.msgSize <= 0)
         {
-            Console.WriteLine(clientSock.RemoteEndPoint.ToString() + "가 접속을 종료했습니다.");
+            Console.WriteLine(clientSock.RemoteEndPoint.ToString() + "접속 종료.");
             clientSock.Close();
             return;
         }

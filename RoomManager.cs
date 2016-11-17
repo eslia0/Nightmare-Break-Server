@@ -35,7 +35,7 @@ public class RoomManager
         return -1;
     }
 
-    public int CreateRoom(Socket host, string name, int dungeonId, int dungeonLevel)
+    public int CreateRoom(Socket player, string name, int dungeonId, int dungeonLevel)
     {
         int index = FindEmptyRoom();
 
@@ -45,13 +45,14 @@ public class RoomManager
             return -1;
         }
 
-        room[index] = new Room(host, name, dungeonId, dungeonLevel);
+        room[index] = new Room(name, dungeonId, dungeonLevel);
+        room[index].
 
         return index;
     }
 
     //소켓을 주면, 그에 따른 유저의 정보를 받아와서
-    public bool EnterRoom(int roomNum, int classId, string id, int level)
+    public bool EnterRoom(Socket socket, int roomNum, int classId, string id, int level)
     {
         if(room[roomNum].PlayerNum >= maxPlayerNum)
         {
@@ -59,7 +60,7 @@ public class RoomManager
             return false;
         }
 
-        room[roomNum].AddPlayer(classId, id, level);
+        room[roomNum].AddPlayer(socket, classId, id, level);
 
         return true;
     }
@@ -81,35 +82,36 @@ public class Room
     private string roomName;
     private int dungeonId;
     private int dungeonLevel;
-    private Socket host;
+    private Socket[] socket;
     private int playerNum;
     private int[] classId;
     private string[] name;
     private int[] level;
 
+    public Socket[] Socket { get { return socket; } }
     public int PlayerNum { get { return playerNum; } }
 
     public Room()
     {
         roomNum = 0;
         roomName = "";
-        host = null;
         playerNum = 0;
         dungeonId = 0;
         dungeonLevel = 0;
+        socket = new Socket[RoomManager.maxPlayerNum];
         classId = new int[RoomManager.maxPlayerNum];
         name = new string[RoomManager.maxPlayerNum];
         level = new int[RoomManager.maxPlayerNum];
     }
 
-    public Room(Socket newHost, string newName, int newDungeonId, int newDungeonLevel)
+    public Room(string newName, int newDungeonId, int newDungeonLevel)
     {
         roomNum = 0;
         roomName = newName;
-        host = newHost;
         playerNum = 0;
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
+        socket = new Socket[RoomManager.maxPlayerNum];
         classId = new int[RoomManager.maxPlayerNum];
         name = new string[RoomManager.maxPlayerNum];
         level = new int[RoomManager.maxPlayerNum];
@@ -128,7 +130,7 @@ public class Room
         return -1;
     }
 
-    public bool AddPlayer(int newClassId, string newName, int newLevel)
+    public bool AddPlayer(Socket newPlayer, int newClassId, string newName, int newLevel)
     {
         int index = FindEmptySlot();
 
@@ -141,6 +143,7 @@ public class Room
         classId[index] = newClassId;
         name[index] = newName;
         level[index] = newLevel;
+        socket[index] = newPlayer;
         playerNum++;
 
         return true;
@@ -151,6 +154,7 @@ public class Room
         classId[index] = 0;
         name[index] = "";
         level[index] = 0;
+        socket[index] = null;
         playerNum--;
     }
 
