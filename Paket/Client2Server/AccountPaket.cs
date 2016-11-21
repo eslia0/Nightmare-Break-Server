@@ -1,18 +1,19 @@
-﻿
-public class AccountPacket : IPacket<AccountPacketData>
+﻿using System;
+
+public class AccountPacket : Packet<AccountData>
 {
     public class AccountSerializer : Serializer
     {
-        public bool Serialize(AccountPacketData data)
+        public bool Serialize(AccountData data)
         {
             bool ret = true;
             ret &= Serialize(data.Id);
             ret &= Serialize(".");
-            ret &= Serialize(data.password);
+            ret &= Serialize(data.Password);
             return ret;
         }
 
-        public bool Deserialize(ref AccountPacketData element)
+        public bool Deserialize(ref AccountData element)
         {
             if (GetDataSize() == 0)
             {
@@ -30,48 +31,51 @@ public class AccountPacket : IPacket<AccountPacketData>
                 return false;
             }
 
-            element.Id = str[0];
-            element.password = str[1];
+            element = new AccountData(str[0], str[1]);
 
             return ret;
         }
     }
 
-    AccountPacketData m_data;
-
-	public AccountPacket(AccountPacketData data) // 데이터로 초기화(송신용)
+	public AccountPacket(AccountData data) // 데이터로 초기화(송신용)
 	{
 		m_data = data;
 	}
 
 	public AccountPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
 	{
-        m_data = new AccountPacketData();
+        m_data = new AccountData();
 		AccountSerializer serializer = new AccountSerializer();
 		serializer.SetDeserializedData(data);
 		serializer.Deserialize(ref m_data);
 	}
 
-	public byte[] GetPacketData() // 바이트형 패킷(송신용)
+	public override byte[] GetPacketData() // 바이트형 패킷(송신용)
 	{
 		AccountSerializer serializer = new AccountSerializer();
 		serializer.Serialize(m_data);
 		return serializer.GetSerializedData();
 	}
-
-	public AccountPacketData GetData() // 데이터 얻기(수신용)
-	{
-		return m_data;
-	}
-
-	public int GetPacketId()
-	{
-		return (int) ClientPacketId.Create;
-	}
 }
 
-public struct AccountPacketData
+[Serializable]
+public class AccountData
 {
-    public string Id;
-    public string password;
+    string id;
+    string password;
+
+    public string Id { get { return id; } }
+    public string Password { get { return password; } }
+
+    public AccountData()
+    {
+        id = "";
+        password = "";
+    }
+
+    public AccountData(string newId, string newPassword)
+    {
+        id = newId;
+        password = newPassword;
+    }
 }

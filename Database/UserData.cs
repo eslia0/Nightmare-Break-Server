@@ -34,7 +34,7 @@ public class UserData
         return -1;
     }
 
-    public bool CreateHero(string newName, int newClass)
+    public bool CreateHero(CreateCharacterData createData)
     {
         int index = FindEmptySlot();
 
@@ -44,9 +44,22 @@ public class UserData
             return false;
         }
 
-        heroData[index] = new HeroData(newName, newClass);
+        heroData[index] = new HeroData(createData.HName, createData.Gender, createData.HClass);
 
         return true;
+    }
+
+    public bool DeleteHero(int index)
+    {
+        try
+        {
+            heroData[index] = new HeroData();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }        
     }
 }
 
@@ -54,8 +67,10 @@ public class HeroData
 {
     public const int skillNum = 6;
     public const int equipNum = 4;
+    public const int maxLevel = 20;
 
     string name;
+    int gender;
     int level;
     int hClass;
     int exp;
@@ -103,10 +118,11 @@ public class HeroData
         equipLevel = new int[equipNum];
     }
 
-    public HeroData(string newName, int newClass)
+    public HeroData(string newName, int newGender, int newClass)
     {   //차후 데이터 베이스 만들때 그 데이터를 가져와서 초기화 하도록 변경
         name = newName;
         level = 1;
+        gender = newGender;
         hClass = newClass;
         exp = 0;
         healthPoint = 100;

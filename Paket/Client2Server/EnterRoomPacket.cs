@@ -1,12 +1,12 @@
 ﻿
-public class EnterRoomPacket : IPacket<EnterRoomData>
+public class EnterRoomPacket : Packet<EnterRoomData>
 {
     public class EnterRoomSerializer : Serializer
     {
         public bool Serialize(EnterRoomData data)
         {
             bool ret = true;
-            ret &= Serialize(data.roomNum);
+            ret &= Serialize(data.RoomNum);
 
             return ret;
         }
@@ -24,14 +24,11 @@ public class EnterRoomPacket : IPacket<EnterRoomData>
 
             ret &= Deserialize(ref roomNum);
 
-            element.roomNum = roomNum;
+            element = new EnterRoomData(roomNum);
 
             return ret;
         }
     }
-
-    EnterRoomData m_data;
-
     public EnterRoomPacket(EnterRoomData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
@@ -45,27 +42,19 @@ public class EnterRoomPacket : IPacket<EnterRoomData>
         serializer.Deserialize(ref m_data);
     }
 
-    public byte[] GetPacketData() // 바이트형 패킷(송신용)
+    public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
         EnterRoomSerializer serializer = new EnterRoomSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }
-
-    public EnterRoomData GetData() // 데이터 얻기(수신용)
-    {
-        return m_data;
-    }
-
-    public int GetPacketId()
-    {
-        return (int)ClientPacketId.EnterRoom;
-    }
 }
 
 public class EnterRoomData
 {
-    public byte roomNum;
+    byte roomNum;
+
+    public byte RoomNum { get { return roomNum; } }
 
     public EnterRoomData()
     {

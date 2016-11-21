@@ -1,5 +1,5 @@
 ﻿
-public class MatchDataPacket : IPacket<MatchData>
+public class MatchDataPacket : Packet<MatchData>
 {
     public class MatchDataSerializer : Serializer
     {
@@ -50,8 +50,6 @@ public class MatchDataPacket : IPacket<MatchData>
         }
     }
 
-    MatchData m_data;
-
     public MatchDataPacket(MatchData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
@@ -65,21 +63,11 @@ public class MatchDataPacket : IPacket<MatchData>
         serializer.Deserialize(ref m_data);
     }
 
-    public byte[] GetPacketData() // 바이트형 패킷(송신용)
+    public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
         MatchDataSerializer serializer = new MatchDataSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
-    }
-
-    public MatchData GetData() // 데이터 얻기(수신용)
-    {
-        return m_data;
-    }
-
-    public int GetPacketId()
-    {
-        return (int)ClientPacketId.Create;
     }
 }
 

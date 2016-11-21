@@ -6,6 +6,9 @@
     Login,
     Logout,
     GameClose,
+    CreateCharacter,
+    DeleteCharacter,
+    SelectCharacter,
     CreateRoom,
     EnterRoom,
     ExitRoom,
@@ -14,9 +17,14 @@
 public enum ServerPacketId
 {
     None = 0,
-    CreateResult,
-    DeleteResult,
+    CreateAccountResult,
+    DeleteAccountResult,
     LoginResult,
+    CreateCharacterResult,
+    DeleteChracterResult,
+    SelectCharacterResult,
     Match,
     CreateRoomResult,
+    EnterRoomResult,
+    ExitRoomResult,
 }

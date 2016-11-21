@@ -1,14 +1,14 @@
 ﻿
-public class CreateRoomPacket : IPacket<CreateRoomData>
+public class CreateRoomPacket : Packet<CreateRoomData>
 {
     public class CreateRoomSerializer : Serializer
     {
         public bool Serialize(CreateRoomData data)
         {
             bool ret = true;
-            ret &= Serialize(data.dungeonId);
-            ret &= Serialize(data.dungeonLevel);
-            ret &= Serialize(data.roomName);
+            ret &= Serialize(data.DungeonId);
+            ret &= Serialize(data.DungeonLevel);
+            ret &= Serialize(data.RoomName);
 
             return ret;
         }
@@ -30,16 +30,12 @@ public class CreateRoomPacket : IPacket<CreateRoomData>
             ret &= Deserialize(ref dungeonLevel);
             ret &= Deserialize(out total, (int)GetDataSize());
 
-            element.dungeonId = dungeonId;
-            element.dungeonLevel = dungeonLevel;
-            element.roomName = total;
-            
+            element = new CreateRoomData(dungeonId, dungeonLevel, total);
+
             return ret;
         }
     }
-
-    CreateRoomData m_data;
-
+    
     public CreateRoomPacket(CreateRoomData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
@@ -53,29 +49,23 @@ public class CreateRoomPacket : IPacket<CreateRoomData>
         serializer.Deserialize(ref m_data);
     }
 
-    public byte[] GetPacketData() // 바이트형 패킷(송신용)
+    public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
         CreateRoomSerializer serializer = new CreateRoomSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }
-
-    public CreateRoomData GetData() // 데이터 얻기(수신용)
-    {
-        return m_data;
-    }
-
-    public int GetPacketId()
-    {
-        return (int)ClientPacketId.CreateRoom;
-    }
 }
 
 public class CreateRoomData
 {
-    public byte dungeonId;
-    public byte dungeonLevel;
-    public string roomName;
+    byte dungeonId;
+    byte dungeonLevel;
+    string roomName;
+
+    public byte DungeonId { get { return dungeonId; } }
+    public byte DungeonLevel { get { return dungeonLevel; } }
+    public string RoomName { get { return roomName; } }
 
     public CreateRoomData()
     {
@@ -84,10 +74,10 @@ public class CreateRoomData
         dungeonLevel = 0;
     }
 
-    public CreateRoomData(string newRoomName, int newId, int newLevel)
+    public CreateRoomData(int newId, int newLevel, string newRoomName)
     {
-        roomName = "";
         dungeonId = (byte)newId;
         dungeonLevel = (byte)newLevel;
+        roomName = "";
     }
 }

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 
 public class AccountDatabase
 {
     public const string accountDataFile = "AccountData.data";
+    public const string heroNameDatafile = "HeroNameData.data";
 
     private static AccountDatabase instance;
 
@@ -25,24 +27,29 @@ public class AccountDatabase
     }
 
     Hashtable accountData;
+    List<string> heroNameData;
     Hashtable userData;
     FileStream fs;
     BinaryFormatter bin;
 
     public Hashtable AccountData { get { return accountData; } }
+    public List<string> HeroNameData { get { return heroNameData; } }
     public Hashtable UserData { get { return userData; } }
 
+    //초기화
     public AccountDatabase()
     {
         bin = new BinaryFormatter();
         fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
 
-        accountData = GetData(accountDataFile);
+        accountData = (Hashtable)GetData(accountDataFile);
+        heroNameData = (List<string>)GetData(heroNameDatafile);
 
         userData = new Hashtable();
     }
 
-    public Hashtable GetData(string path)
+    //파일 열기
+    public object GetData(string path)
     {
         fs.Close();
         fs = new FileStream(path, FileMode.OpenOrCreate);
@@ -61,7 +68,7 @@ public class AccountDatabase
         catch
         {
             Console.WriteLine("Database::GetData 에러");
-            return new Hashtable();
+            return null;
         }
     }
 
@@ -73,8 +80,8 @@ public class AccountDatabase
             if (!accountData.Contains(Id))
             {
                 accountData.Add(Id, new AccountData(Id, Pw));
-
                 FileSave(accountDataFile, accountData);
+
                 FileSave(Id + ".data", new UserData(Id));
 
                 return true;
@@ -93,13 +100,13 @@ public class AccountDatabase
     }
 
     //탈퇴시 아이디 삭제
-    public DataHandler.Result DeleteAccountData(string Id, string Pw)
+    public Result DeleteAccountData(string Id, string Pw)
     {
         try
         {
             if (accountData.Contains(Id))
             {
-                if (((AccountData)accountData[Id]).PW == Pw)
+                if (((AccountData)accountData[Id]).Password == Pw)
                 {
                     accountData.Remove(Id);
                     FileSave(accountDataFile, accountData);
@@ -107,32 +114,32 @@ public class AccountDatabase
                     FileInfo file = new FileInfo(Id + ".data");
                     file.Delete();
 
-                    return DataHandler.Result.Success;
+                    return Result.Success;
                 }
                 else
                 {
                     Console.WriteLine("잘못된 비밀번호");
-                    return DataHandler.Result.Fail;
+                    return Result.Fail;
                 }
             }
             else
             {
                 Console.WriteLine("존재하지 않는 아이디");
-                return DataHandler.Result.Fail;
+                return Result.Fail;
             }
         }
         catch
         {
             Console.WriteLine("Database::DeleteAccountData.Contains 에러");
-            return DataHandler.Result.Fail;
+            return Result.Fail;
         }
     }
 
-    public UserData GetAccountData(LoginCharacter Id)
+    public UserData GetUserData(string id)
     {
-        if (userData.Contains(Id))
+        if (userData.Contains(id))
         {
-            return (UserData)userData[Id];
+            return (UserData)userData[id];
         }
         else
         {
@@ -140,41 +147,50 @@ public class AccountDatabase
         }
     }
 
-    public UserData AddUserData(LoginCharacter Id)
+    public UserData AddUserData(string id)
     {
         fs.Close();
         //파일이 있으면 가져오고 없으면 새로 만듬
         try
         {
-            fs = new FileStream(Id + ".data", FileMode.OpenOrCreate);
+            fs = new FileStream(id + ".data", FileMode.OpenOrCreate);
         }
         catch
         {
             Console.WriteLine("Database::GetAccountData.FileOpenOrCreate 에러");
+            return null;
         }
 
-        UserData newUserData;
+        UserData newUserData = null;
 
-        //원래 있는 경우에는 그 파일의 데이터를 가져오고
         if (fs.Length > 0)
         {
             newUserData = (UserData)bin.Deserialize(fs);
         }
-        //없을 경우에는 새로 만들어서 가져옴
         else
         {
-            newUserData = new UserData(Id.Id);
+            Console.WriteLine("Database::GetAccountData.Deserialize 에러");
+            return null;
         }
 
         //데이터를 유저리스트 테이블에 추가한 뒤 반환
-        userData.Add(Id, newUserData);
+        userData.Add(id, newUserData);
+
         return newUserData;
     }
+    
+    //영웅 데이터 반환
+    public HeroData GetHeroData(string id, int characterId)
+    {
+        UserData userData = GetUserData(id);
+        return userData.HeroData[characterId];
+    }
 
+    //파일 저장
     public bool FileSave(string path, object data)
     {
         try
-        {
+        {   //FileMode.Create 로 덮어쓰기
             fs.Close();
             fs = new FileStream(path, FileMode.Create);
         }
@@ -195,21 +211,5 @@ public class AccountDatabase
         }
 
         return true;
-    }
-}
-
-[Serializable]
-public class AccountData
-{
-    string Id;
-    string Pw;
-
-    public string ID { get { return Id; } }
-    public string PW { get { return Pw; } }
-
-    public AccountData(string newId, string newPw)
-    {
-        Id = newId;
-        Pw = newPw;
     }
 }

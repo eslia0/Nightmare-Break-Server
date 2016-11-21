@@ -35,7 +35,7 @@ public class RoomManager
         return -1;
     }
 
-    public int CreateRoom(Socket player, string name, int dungeonId, int dungeonLevel)
+    public int CreateRoom(Socket player, HeroData heroData, CreateRoomData createRoomData)
     {
         int index = FindEmptyRoom();
 
@@ -45,14 +45,14 @@ public class RoomManager
             return -1;
         }
 
-        room[index] = new Room(name, dungeonId, dungeonLevel);
-        room[index].
+        room[index] = new Room(createRoomData.RoomName, createRoomData.DungeonId, createRoomData.DungeonLevel);
+        room[index].AddPlayer(player, heroData);
 
         return index;
     }
 
     //소켓을 주면, 그에 따른 유저의 정보를 받아와서
-    public bool EnterRoom(Socket socket, int roomNum, int classId, string id, int level)
+    public bool EnterRoom(Socket socket, HeroData heroData, int roomNum)
     {
         if(room[roomNum].PlayerNum >= maxPlayerNum)
         {
@@ -60,14 +60,14 @@ public class RoomManager
             return false;
         }
 
-        room[roomNum].AddPlayer(socket, classId, id, level);
+        room[roomNum].AddPlayer(socket, heroData);
 
         return true;
     }
 
-    public void ExitRoom(int roomNum, int index)
+    public void ExitRoom(int roomNum, Socket player)
     {
-        room[roomNum].DeletePlayer(index);
+        room[roomNum].DeletePlayer(player);
 
         if(room[roomNum].PlayerNum <= 0)
         {
@@ -130,7 +130,20 @@ public class Room
         return -1;
     }
 
-    public bool AddPlayer(Socket newPlayer, int newClassId, string newName, int newLevel)
+    public int FindPlayerWithSocket(Socket player)
+    {
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
+        {
+            if (socket[i] == player)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public bool AddPlayer(Socket newPlayer, HeroData newData)
     {
         int index = FindEmptySlot();
 
@@ -140,17 +153,24 @@ public class Room
             return false;
         }
 
-        classId[index] = newClassId;
-        name[index] = newName;
-        level[index] = newLevel;
+        classId[index] = newData.HClass;
+        name[index] = newData.Name;
+        level[index] = newData.Level;
         socket[index] = newPlayer;
         playerNum++;
 
         return true;
     }
 
-    public void DeletePlayer(int index)
+    public void DeletePlayer(Socket player)
     {
+        int index = FindPlayerWithSocket(player);
+
+        if(index == -1)
+        {
+            return;
+        }
+
         classId[index] = 0;
         name[index] = "";
         level[index] = 0;
