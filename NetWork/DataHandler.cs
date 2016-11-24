@@ -85,9 +85,9 @@ public class DataHandler
                 ResizeByteArray(0, UnityServer.packetSource + UnityServer.packetId, ref tcpPacket.msg);
 
                 //Dictionary에 등록된 델리게이트 메소드에서 PacketId를 반환받는다.
-                if (m_notifier.TryGetValue(headerData.Id, out recvNotifier))
+                if (m_notifier.TryGetValue(headerData.id, out recvNotifier))
                 {
-                    ServerPacketId packetId = recvNotifier(msg);
+                    ServerPacketId packetId = recvNotifier(tcpPacket.msg);
 
                     //send 할 id를 반환받음
                     if (packetId != ServerPacketId.None)
@@ -100,8 +100,8 @@ public class DataHandler
                 {
                     Console.WriteLine("DataHandler::DataHandle.TryGetValue 에러 ");
                     Console.WriteLine("패킷 출처 : " + headerData.source);
-                    Console.WriteLine("패킷 ID : " + headerData.Id);
-                    headerData.Id = (byte)ServerPacketId.None;
+                    Console.WriteLine("패킷 ID : " + headerData.id);
+                    headerData.id = (byte)ServerPacketId.None;
                 }
             }
         }
@@ -109,7 +109,17 @@ public class DataHandler
 
     public void SetNotifier()
     {
+        m_notifier.Add((int)ClientPacketId.CreateAccount, CreateAccount);
+        m_notifier.Add((int)ClientPacketId.DeleteAccount, DeleteAccount);
+        m_notifier.Add((int)ClientPacketId.Login, Login);
+        m_notifier.Add((int)ClientPacketId.Logout, Logout);
         m_notifier.Add((int)ClientPacketId.GameClose, GameClose);
+        m_notifier.Add((int)ClientPacketId.CreateCharacter, CreateCharacter);
+        m_notifier.Add((int)ClientPacketId.DeleteCharacter, DeleteCharacter);
+        m_notifier.Add((int)ClientPacketId.SelectCharacter, SelectCharacter);
+        m_notifier.Add((int)ClientPacketId.CreateRoom, CreateRoom);
+        m_notifier.Add((int)ClientPacketId.EnterRoom, EnterRoom);
+        m_notifier.Add((int)ClientPacketId.ExitRoom, ExitRoom);
     }
 
     public ServerPacketId CreateAccount(byte[] data)
@@ -127,7 +137,7 @@ public class DataHandler
         {
             if (database.AddAccountData(accountData.Id, accountData.Password))
             {
-                result = Result.Fail;
+                result = Result.Success;
                 Console.WriteLine("가입 성공");
             }
             else
@@ -142,7 +152,10 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.DeleteAccountResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.CreateAccountResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.CreateAccountResult;
     }
@@ -177,7 +190,10 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.DeleteAccountResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.DeleteAccountResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.DeleteAccountResult;
     }
@@ -235,11 +251,15 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.LoginResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.LoginResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.LoginResult;
     }
 
+    /*
     public ServerPacketId ReLogin(byte[] data)
     {
         Console.WriteLine(tcpPacket.client.RemoteEndPoint.ToString() + " 재로그인요청");
@@ -280,6 +300,7 @@ public class DataHandler
 
         return ServerPacketId.LoginResult;
     }
+    */
 
     public ServerPacketId Logout(byte[] data)
     {
@@ -309,7 +330,10 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.LoginResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.LogoutResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.None;
     }
@@ -349,22 +373,28 @@ public class DataHandler
         string id = loginUser[tcpPacket.client];
         UserData userData = database.GetUserData(id);
 
+        Result result = Result.Fail;
+
         try
         {
             userData.CreateHero(createCharacterData);
             database.FileSave(id + ".data", userData);
 
-            ResultData resultData = new ResultData((byte)Result.Success);
-            ResultDataPacket resultDataPacket = new ResultDataPacket(resultData);
-            resultDataPacket.SetPacketId((int)ServerPacketId.CreateCharacterResult);
+            result = Result.Success;
 
-            return ServerPacketId.CreateCharacterResult;
         }
         catch
         {
             Console.WriteLine("DataHandler::Createcharacter.CreateHero 에러");
-            return ServerPacketId.None;
+            result = Result.Fail;
         }
+
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.CreateCharacterResult);
+        msg = CreatePacket(resultDataPacket);
+
+        return ServerPacketId.CreateCharacterResult;
     }
 
     //캐릭터 삭제
@@ -391,7 +421,11 @@ public class DataHandler
         }
 
         database.FileSave(id + ".data", userData);
-        msg = CreateResultPacket(result, ServerPacketId.SelectCharacterResult);
+
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.DeleteChracterResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.DeleteChracterResult;
     }
@@ -418,9 +452,23 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.SelectCharacterResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.SelectCharacterResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.SelectCharacterResult;
+    }
+
+    //방 목록 요청
+    public ServerPacketId RequestRoomList(byte[] data)
+    {
+        Console.WriteLine("방 목록 요청");
+
+        RoomListPacket roomListPacket = roomManager.GetRoomList();
+        msg = CreatePacket(roomListPacket);
+
+        return ServerPacketId.RoomList;
     }
 
     //방 생성
@@ -444,7 +492,10 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.CreateRoomResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.CreateRoomResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.CreateRoomResult;
     }
@@ -478,9 +529,48 @@ public class DataHandler
             result = Result.Fail;
         }
 
-        msg = CreateResultPacket(result, ServerPacketId.SelectCharacterResult);
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.EnterRoomResult);
+        msg = CreatePacket(resultDataPacket);
 
         return ServerPacketId.EnterRoomResult;
+    }
+
+    public ServerPacketId ExitRoom(byte[] data)
+    {
+        Console.WriteLine("방 퇴장");
+        ExitRoomPacket exitRoomPacket = new ExitRoomPacket(data);
+        ExitRoomData exitRoomData = exitRoomPacket.GetData();
+
+        string id = loginUser[tcpPacket.client];
+        int characterId = loginCharacter[id];
+
+        Result result = Result.Fail;
+
+        try
+        {
+            if (roomManager.Room[exitRoomData.RoomNum].DeletePlayer(tcpPacket.client))
+            {
+                result = Result.Success;
+            }
+            else
+            {
+                result = Result.Fail;
+            }
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::ExitRoom.DeletePlayer 에러");
+            result = Result.Fail;
+        }
+
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.ExitRoomResult);
+        msg = CreatePacket(resultDataPacket);
+
+        return ServerPacketId.ExitRoomResult;
     }
 
     //유저 매칭
@@ -498,7 +588,7 @@ public class DataHandler
 
         MatchData matchData = new MatchData(ip);
         MatchDataPacket matchDataPacket = new MatchDataPacket(matchData);
-        msg = CreatePacket(matchDataPacket, ServerPacketId.Match);
+        msg = CreatePacket(matchDataPacket);
 
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
@@ -511,16 +601,17 @@ public class DataHandler
         }
     }
 
-    byte[] CreateHeader<T>(Packet<T> data, ServerPacketId Id)
+    //패킷의 헤더 생성
+    byte[] CreateHeader<T>(Packet<T> data)
     {
         byte[] msg = data.GetPacketData();
 
         HeaderData headerData = new HeaderData();
         HeaderSerializer headerSerializer = new HeaderSerializer();
 
-        headerData.Id = (byte)Id;
-        headerData.source = (byte)Source.ServerSource;
         headerData.length = (short)msg.Length;
+        headerData.source = (byte)Source.ServerSource;
+        headerData.id = (byte)data.GetPacketId();
 
         headerSerializer.Serialize(headerData);
         byte[] header = headerSerializer.GetSerializedData();
@@ -528,22 +619,14 @@ public class DataHandler
         return header;
     }
 
-    byte[] CreatePacket<T>(Packet<T> data, ServerPacketId Id)
+    //패킷 생성
+    byte[] CreatePacket<T>(Packet<T> data)
     {
         byte[] msg = data.GetPacketData();
-        byte[] header = CreateHeader(data, Id);
+        byte[] header = CreateHeader(data);
         byte[] packet = CombineByte(header, msg);
 
         return packet;
-    }
-
-    byte[] CreateResultPacket(Result result, ServerPacketId Id)
-    {
-        ResultData resultData = new ResultData((byte)result);
-        ResultDataPacket resultDataPacket = new ResultDataPacket(resultData);
-        resultDataPacket.SetPacketId((int)Id);
-        
-        return resultDataPacket.GetPacketData();
     }
 
     bool CompareIP(string ip1, string ip2)
@@ -607,12 +690,12 @@ public class DataHandler
 public class TcpClient
 {
 	public Socket client;
-	public string Id;
+	public string id;
 
 	public TcpClient (Socket newClient)
 	{
 		client = newClient;
-		Id = "";
+		id = "";
 	}
 }
 
@@ -621,5 +704,5 @@ public class HeaderData
     // 헤더 == [2바이트 - 패킷길이][1바이트 - 출처][1바이트 - ID]
     public short length; // 패킷의 길이
     public byte source; // 패킷의 출처
-    public byte Id; // 패킷 ID
+    public byte id; // 패킷 ID
 }

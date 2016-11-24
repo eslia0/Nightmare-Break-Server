@@ -1,6 +1,6 @@
-﻿public class ResultDataPacket : Packet<ResultData>
+﻿public class ResultPacket : Packet<ResultData>
 {
-    public class ResultDataSerializer : Serializer
+    public class ResultSerializer : Serializer
     {
         public bool Serialize(ResultData data)
         {
@@ -26,22 +26,22 @@
             return ret;
         }
     }
-    public ResultDataPacket(ResultData data) // 데이터로 초기화(송신용)
+    public ResultPacket(ResultData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
-    public ResultDataPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
+    public ResultPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
         m_data = new ResultData();
-        ResultDataSerializer serializer = new ResultDataSerializer();
+        ResultSerializer serializer = new ResultSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
     }
 
     public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
-        ResultDataSerializer serializer = new ResultDataSerializer();
+        ResultSerializer serializer = new ResultSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }

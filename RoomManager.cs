@@ -18,7 +18,6 @@ public class RoomManager
         for (int i = 0; i < maxRoomNum; i++)
         {
             room[i] = new Room();
-            room[i].roomNum = i + 1;
         }
     }
 
@@ -74,54 +73,69 @@ public class RoomManager
             room[roomNum] = new Room();
         }
     }
+
+    public RoomListPacket GetRoomList()
+    {
+        RoomListData roomListData = new RoomListData(room);
+        RoomListPacket roomListPacket = new RoomListPacket(roomListData);
+
+        return roomListPacket;
+    }
 }
 
 public class Room
 {
-    public int roomNum;
-    private string roomName;
-    private int dungeonId;
-    private int dungeonLevel;
-    private Socket[] socket;
-    private int playerNum;
-    private int[] classId;
-    private string[] name;
-    private int[] level;
+    string roomName;
+    int dungeonId;
+    int dungeonLevel;
+    Socket[] socket;
+    int playerNum;
+    int[] userClass;
+    UserData.Gender[] userGender;
+    string[] userName;
+    int[] userLevel;
 
     public Socket[] Socket { get { return socket; } }
     public int PlayerNum { get { return playerNum; } }
+    public string RoomName { get { return roomName; } }
+    public int DungeonId { get { return dungeonId; } }
+    public int DungeonLevel { get { return dungeonLevel; } }
+    public int[] UserClass { get { return userClass; } }
+    public UserData.Gender[] UserGender { get { return userGender; } }
+    public string[] USerName { get { return userName; } }
+    public int[] UserLevel { get { return userLevel; } }
 
     public Room()
     {
-        roomNum = 0;
         roomName = "";
         playerNum = 0;
         dungeonId = 0;
         dungeonLevel = 0;
         socket = new Socket[RoomManager.maxPlayerNum];
-        classId = new int[RoomManager.maxPlayerNum];
-        name = new string[RoomManager.maxPlayerNum];
-        level = new int[RoomManager.maxPlayerNum];
+        userClass = new int[RoomManager.maxPlayerNum];
+        userGender = new UserData.Gender[RoomManager.maxPlayerNum];
+        userName = new string[RoomManager.maxPlayerNum];
+        userLevel = new int[RoomManager.maxPlayerNum];
     }
 
     public Room(string newName, int newDungeonId, int newDungeonLevel)
     {
-        roomNum = 0;
         roomName = newName;
         playerNum = 0;
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
         socket = new Socket[RoomManager.maxPlayerNum];
-        classId = new int[RoomManager.maxPlayerNum];
-        name = new string[RoomManager.maxPlayerNum];
-        level = new int[RoomManager.maxPlayerNum];
+        userClass = new int[RoomManager.maxPlayerNum];
+        userGender = new UserData.Gender[RoomManager.maxPlayerNum];
+        userName = new string[RoomManager.maxPlayerNum];
+        userLevel = new int[RoomManager.maxPlayerNum];
     }
 
     public int FindEmptySlot()
     {
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            if(level[i] == 0)
+            if(userLevel[i] == 0)
             {
                 return i;
             }
@@ -153,43 +167,45 @@ public class Room
             return false;
         }
 
-        classId[index] = newData.HClass;
-        name[index] = newData.Name;
-        level[index] = newData.Level;
+        userClass[index] = newData.HClass;
+        userName[index] = newData.Name;
+        userLevel[index] = newData.Level;
         socket[index] = newPlayer;
         playerNum++;
 
         return true;
     }
 
-    public void DeletePlayer(Socket player)
+    public bool DeletePlayer(Socket player)
     {
         int index = FindPlayerWithSocket(player);
 
         if(index == -1)
         {
-            return;
+            return false;
         }
 
-        classId[index] = 0;
-        name[index] = "";
-        level[index] = 0;
+        userClass[index] = 0;
+        userName[index] = "";
+        userLevel[index] = 0;
         socket[index] = null;
         playerNum--;
+
+        return true;
     }
 
     public void SwapPlayer(int origSlot, int DestiSlot)
     {
-        int tempInt = classId[origSlot];
-        classId[origSlot] = DestiSlot;
+        int tempInt = userClass[origSlot];
+        userClass[origSlot] = DestiSlot;
         DestiSlot = tempInt;
 
-        tempInt = level[origSlot];
-        level[origSlot] = level[DestiSlot];
-        level[DestiSlot] = tempInt;
+        tempInt = userLevel[origSlot];
+        userLevel[origSlot] = userLevel[DestiSlot];
+        userLevel[DestiSlot] = tempInt;
 
-        string tempString = name[origSlot];
-        name[origSlot] = name[DestiSlot];
-        name[DestiSlot] = tempString;
+        string tempString = userName[origSlot];
+        userName[origSlot] = userName[DestiSlot];
+        userName[DestiSlot] = tempString;
     }
 }

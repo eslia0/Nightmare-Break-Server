@@ -3,6 +3,12 @@
 [Serializable]
 public class UserData
 {
+    public enum Gender
+    {
+        male = 0,
+        female = 1,
+    }
+
     public const int maxHeroNum = 4;
 
     string Id;
@@ -63,6 +69,7 @@ public class UserData
     }
 }
 
+[Serializable]
 public class HeroData
 {
     public const int skillNum = 6;
@@ -80,12 +87,12 @@ public class HeroData
     int mpRegeneration;
     int attack;
     int defense;
-    float critical;
     int dreamStone;
     int[] skillLevel;
     int[] equipLevel;
 
     public string Name { get { return name; } }
+    public int Gender { get { return gender; } }
     public int Level { get { return level; } }
     public int HClass { get { return hClass; } }
     public int Exp { get { return exp; } }
@@ -95,7 +102,6 @@ public class HeroData
     public int MpRegeneration { get { return mpRegeneration; } }
     public int Attack { get { return attack; } }
     public int Defense { get { return defense; } }
-    public float Critical { get { return critical; } }
     public int DreamStone { get { return dreamStone; } }
     public int[] SkillLevel { get { return skillLevel; } }
     public int[] EquipLevel { get { return equipLevel; } }
@@ -112,7 +118,6 @@ public class HeroData
         mpRegeneration = 0;
         attack = 0;
         defense = 0;
-        critical = 0;
         dreamStone = 0;
         skillLevel = new int[skillNum];
         equipLevel = new int[equipNum];
@@ -131,7 +136,6 @@ public class HeroData
         mpRegeneration = 0;
         attack = 0;
         defense = 0;
-        critical = 0;
         dreamStone = 0;
         skillLevel = new int[skillNum];
         equipLevel = new int[equipNum];

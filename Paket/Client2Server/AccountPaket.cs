@@ -26,6 +26,7 @@ public class AccountPacket : Packet<AccountData>
             ret &= Deserialize(out total, (int)GetDataSize());
 
             string[] str = total.Split('.');
+            
             if (str.Length < 2)
             {
                 return false;

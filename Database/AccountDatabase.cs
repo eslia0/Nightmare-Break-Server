@@ -32,8 +32,72 @@ public class AccountDatabase
     FileStream fs;
     BinaryFormatter bin;
 
-    public Hashtable AccountData { get { return accountData; } }
-    public List<string> HeroNameData { get { return heroNameData; } }
+    public Hashtable AccountData
+    {
+        get
+        {
+            if (heroNameData == null)
+            {
+                fs.Close();
+
+                fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
+
+                try
+                {
+                    if (fs.Length > 0)
+                    {
+                        return (Hashtable)bin.Deserialize(fs);
+                    }
+                    else
+                    {
+                        return new Hashtable();
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Database::GetData 에러");
+                    return null;
+                }
+            }
+            else
+            {
+                return accountData;
+            }
+        }
+    }
+    public List<string> HeroNameData
+    {
+        get
+        {
+            if (heroNameData == null)
+            {
+                fs.Close();
+
+                fs = new FileStream(heroNameDatafile, FileMode.OpenOrCreate);
+
+                try
+                {
+                    if (fs.Length > 0)
+                    {
+                        return (List<string>)bin.Deserialize(fs);
+                    }
+                    else
+                    {
+                        return new List<string>();
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine("Database::GetData 에러");
+                    return null;
+                }
+            }
+            else
+            {
+                return heroNameData;
+            }
+        }
+    }
     public Hashtable UserData { get { return userData; } }
 
     //초기화
@@ -42,34 +106,9 @@ public class AccountDatabase
         bin = new BinaryFormatter();
         fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
 
-        accountData = (Hashtable)GetData(accountDataFile);
-        heroNameData = (List<string>)GetData(heroNameDatafile);
-
+        accountData = AccountData;
+        heroNameData = HeroNameData;
         userData = new Hashtable();
-    }
-
-    //파일 열기
-    public object GetData(string path)
-    {
-        fs.Close();
-        fs = new FileStream(path, FileMode.OpenOrCreate);
-
-        try
-        {
-            if (fs.Length > 0)
-            {
-                return (Hashtable)bin.Deserialize(fs);
-            }
-            else
-            {
-                return new Hashtable();
-            }
-        }
-        catch
-        {
-            Console.WriteLine("Database::GetData 에러");
-            return null;
-        }
     }
 
     //가입시 아이디 추가

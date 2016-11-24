@@ -9,7 +9,7 @@
 		bool ret = true;
 		ret &= Serialize(data.length);
         ret &= Serialize(data.source);
-        ret &= Serialize(data.Id);
+        ret &= Serialize(data.id);
 
 		if (ret == false)
 		{
@@ -30,15 +30,12 @@
 		}
 
 		// 데이터의 요소별로 디시리얼라이즈한다.
-		short packetLength = 0;
         byte source = 0;
 		byte packetId = 0;
-        ret &= Deserialize(ref packetLength);
         ret &= Deserialize(ref source);
         ret &= Deserialize(ref packetId);
-        serialized.length = packetLength;
         serialized.source = source;
-        serialized.Id = packetId;
+        serialized.id = packetId;
 
 		return ret;
 	}
