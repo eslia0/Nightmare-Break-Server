@@ -460,6 +460,22 @@ public class DataHandler
         return ServerPacketId.SelectCharacterResult;
     }
 
+    //캐릭터 정보 요청
+    public ServerPacketId RequestCharacterStatus(byte[] data)
+    {
+        Console.WriteLine("캐릭터 정보 요청");
+
+        string id = loginUser[tcpPacket.client];
+        int character = loginCharacter[id];
+
+        HeroData heroData = database.GetHeroData(id, character);
+        CharacterStatusData characterStatusData = new CharacterStatusData(heroData.Name, (byte)heroData.Level, (byte)heroData.Gender, (byte)heroData.HClass, 
+            (byte)heroData.Exp, (byte)heroData.HealthPoint, (byte)heroData.MagicPoint, (byte)heroData.HpRegeneration, (byte)heroData.MpRegeneration, 
+            (byte)heroData.Attack, (byte)heroData.Defense, (byte)heroData.DreamStone, heroData.ByteSkillLevel, heroData.ByteSkillLevel);
+
+        return ServerPacketId.CharacterStatus;
+    }
+
     //방 목록 요청
     public ServerPacketId RequestRoomList(byte[] data)
     {
@@ -537,6 +553,7 @@ public class DataHandler
         return ServerPacketId.EnterRoomResult;
     }
 
+    //방 퇴장
     public ServerPacketId ExitRoom(byte[] data)
     {
         Console.WriteLine("방 퇴장");

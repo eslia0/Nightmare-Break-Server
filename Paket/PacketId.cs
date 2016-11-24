@@ -26,6 +26,7 @@ public enum ServerPacketId
     DeleteChracterResult,
     SelectCharacterResult,
     RoomList,
+    CharacterStatus,
     CreateRoomResult,
     EnterRoomResult,
     ExitRoomResult,

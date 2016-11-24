@@ -42,6 +42,7 @@
     <Compile Include="Paket\Client2Server\CreateRoomPacket.cs" />
     <Compile Include="Paket\Client2Server\EnterRoomPacket.cs" />
     <Compile Include="Paket\ResultPacket.cs" />
+    <Compile Include="Paket\Server2Client\CharacterStatusPacket.cs" />
     <Compile Include="Paket\Server2Client\MatchDataPacket.cs" />
     <Compile Include="Paket\Server2Client\RoomListPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

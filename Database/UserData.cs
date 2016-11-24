@@ -105,6 +105,34 @@ public class HeroData
     public int DreamStone { get { return dreamStone; } }
     public int[] SkillLevel { get { return skillLevel; } }
     public int[] EquipLevel { get { return equipLevel; } }
+    public byte[] ByteSkillLevel
+    {
+        get
+        {
+            byte[] byteArray = new byte[skillNum];
+
+            for (int i = 0; i < skillNum; i++)
+            {
+                byteArray[i] = (byte)skillLevel[i];
+            }
+
+            return byteArray;
+        }
+    }
+    public byte[] ByteEquipLevel
+    {
+        get
+        {
+            byte[] byteArray = new byte[equipNum];
+
+            for (int i = 0; i < equipNum; i++)
+            {
+                byteArray[i] = (byte)equipLevel[i];
+            }
+
+            return byteArray;
+        }
+    }
 
     public HeroData()
     {
