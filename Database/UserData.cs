@@ -87,6 +87,7 @@ public class HeroData
     int mpRegeneration;
     int attack;
     int defense;
+    int skillPoint;
     int dreamStone;
     int[] skillLevel;
     int[] equipLevel;
@@ -102,6 +103,7 @@ public class HeroData
     public int MpRegeneration { get { return mpRegeneration; } }
     public int Attack { get { return attack; } }
     public int Defense { get { return defense; } }
+    public int SkillPoint { get { return skillPoint; } }
     public int DreamStone { get { return dreamStone; } }
     public int[] SkillLevel { get { return skillLevel; } }
     public int[] EquipLevel { get { return equipLevel; } }
@@ -146,6 +148,7 @@ public class HeroData
         mpRegeneration = 0;
         attack = 0;
         defense = 0;
+        skillPoint = 0;
         dreamStone = 0;
         skillLevel = new int[skillNum];
         equipLevel = new int[equipNum];
@@ -164,11 +167,49 @@ public class HeroData
         mpRegeneration = 0;
         attack = 0;
         defense = 0;
+        skillPoint = 0;
         dreamStone = 0;
         skillLevel = new int[skillNum];
         equipLevel = new int[equipNum];
 
         for (int i = 0; i < skillNum; i++) { skillLevel[i] = 1; }
         for (int i = 0; i < equipNum; i++) { equipLevel[i] = 1; }
+    }
+
+    public CharacterStatusData GetCharacterStatusData()
+    {
+        CharacterStatusData characterStatusData = new CharacterStatusData(Name, (byte)Level, (byte)Gender, (byte)HClass, (byte)Exp, (byte)HealthPoint,
+            (byte)MagicPoint, (byte)HpRegeneration, (byte)MpRegeneration, (byte)Attack, (byte)Defense, (byte)skillPoint, (byte)DreamStone, ByteSkillLevel, ByteSkillLevel);
+
+        return characterStatusData;
+    }
+
+    //경험치 획득 및 레벨업
+    public void GainExp(int amount)
+    {
+        exp += amount;
+
+        int maxExp = 100;   //차후에 데이터베이스에서 가져오도록 변경
+
+        if (exp > maxExp)
+        {
+            level ++;
+            exp -= maxExp;
+            skillPoint++;
+        }
+    }
+
+    //스킬 투자
+    public void SkillUp(int index)
+    {
+        skillLevel[index]++;
+        skillPoint--;
+    }
+
+    //장비 강화
+    public void EquipUpgrade(int index)
+    {
+        dreamStone -= equipLevel[index] * 10;
+        equipLevel[index]++;
     }
 }

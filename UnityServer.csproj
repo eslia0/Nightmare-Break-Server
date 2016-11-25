@@ -35,12 +35,14 @@
   <ItemGroup>
     <Compile Include="Database\AccountDatabase.cs" />
     <Compile Include="Database\UserData.cs" />
+    <Compile Include="Paket\Client2Server\EquipUpgradePacket.cs" />
     <Compile Include="Paket\Client2Server\ExitRoomPacket.cs" />
     <Compile Include="Paket\Client2Server\SelectCharacterPacket.cs" />
     <Compile Include="Paket\Client2Server\DeletecharacterPacket.cs" />
     <Compile Include="Paket\Client2Server\CreateCharacterPacket.cs" />
     <Compile Include="Paket\Client2Server\CreateRoomPacket.cs" />
     <Compile Include="Paket\Client2Server\EnterRoomPacket.cs" />
+    <Compile Include="Paket\Client2Server\SkillUpPacket.cs" />
     <Compile Include="Paket\ResultPacket.cs" />
     <Compile Include="Paket\Server2Client\CharacterStatusPacket.cs" />
     <Compile Include="Paket\Server2Client\MatchDataPacket.cs" />

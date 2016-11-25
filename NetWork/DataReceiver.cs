@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class DataReceiver
 {
 	public Socket listenSock;
-	Queue<TcpPacket> msgs;
+	Queue<DataPacket> msgs;
 
 	object receiveLock;
 
@@ -16,7 +16,7 @@ public class DataReceiver
 
     //초기화
     //소켓 초기화 및 콜백 메소드 설정, BeginAccept
-    public DataReceiver(Queue<TcpPacket> newQueue, IPAddress newAddress, int newPort, object newLock)
+    public DataReceiver(Queue<DataPacket> newQueue, IPAddress newAddress, int newPort, object newLock)
 	{
 		listenSock = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 		listenSock.Bind (new IPEndPoint (newAddress, newPort));
@@ -143,7 +143,7 @@ public class DataReceiver
         if (asyncData.msgSize >= UnityServer.packetId + UnityServer.packetSource)
 		{
 			Array.Resize (ref asyncData.msg, asyncData.msgSize);
-            TcpPacket packet = new TcpPacket (asyncData.msg, clientSock);
+            DataPacket packet = new DataPacket (asyncData.msg, clientSock);
 
             lock (receiveLock)
             {
@@ -179,12 +179,18 @@ public class AsyncData
 	}
 }
 
-public class TcpPacket
+public class DataPacket
 {
 	public byte[] msg;
 	public Socket client;
 
-	public TcpPacket (byte[] newMsg, Socket newclient)
+    public DataPacket()
+    {
+        msg = new byte[1024];
+        client = null;
+    }
+
+	public DataPacket(byte[] newMsg, Socket newclient)
 	{
 		msg = newMsg;
 		client = newclient;
