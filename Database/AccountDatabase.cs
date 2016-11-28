@@ -232,6 +232,7 @@ public class AccountDatabase
         {   //FileMode.Create 로 덮어쓰기
             fs.Close();
             fs = new FileStream(path, FileMode.Create);
+            Console.WriteLine("저장 경로 : " + path);
         }
         catch
         {
@@ -242,6 +243,8 @@ public class AccountDatabase
         try
         {
             bin.Serialize(fs, data);
+            Console.WriteLine(null == fs);
+            Console.WriteLine(null == data);
         }
         catch (Exception e)
         {

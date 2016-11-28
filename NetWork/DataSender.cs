@@ -5,14 +5,14 @@ using System.Collections.Generic;
 
 public class DataSender
 {
-    Queue<TcpPacket> msgs;
-    TcpPacket tcpPacket;
+    Queue<DataPacket> msgs;
+    DataPacket tcpPacket;
     Socket client;
     byte[] msg;
 
     Object sendLock;
 
-    public DataSender(Queue<TcpPacket> newQueue, Object newSendLock)
+    public DataSender(Queue<DataPacket> newQueue, object newSendLock)
     {
         msgs = newQueue;
         sendLock = newSendLock;

@@ -11,13 +11,13 @@ public class UnityServer
 
     public static void Main(string[] args)
     {
-        Queue<TcpPacket> receiveData = new Queue<TcpPacket>();
-        Queue<TcpPacket> sendData = new Queue<TcpPacket>();
+        Queue<DataPacket> receiveData = new Queue<DataPacket>();
+        Queue<DataPacket> sendData = new Queue<DataPacket>();
 
-        object receiveLock = new Object();
-        object sendLock = new Object();
+        object receiveLock = new object();
+        object sendLock = new object();
 
-        DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse("192.168.94.88"), 8800, receiveLock);
+        DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse("192.168.0.5"), 8800, receiveLock);
         DataHandler dataHandler = new DataHandler(receiveData, sendData, receiveLock, sendLock);
         DataSender dataSender = new DataSender(sendData, sendLock);
 
