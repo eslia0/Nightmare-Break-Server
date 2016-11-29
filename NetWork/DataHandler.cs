@@ -111,6 +111,10 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.CreateRoom, CreateRoom);
         m_notifier.Add((int)ClientPacketId.EnterRoom, EnterRoom);
         m_notifier.Add((int)ClientPacketId.ExitRoom, ExitRoom);
+        m_notifier.Add((int)ClientPacketId.RoomUserData, RoomUserData);
+        m_notifier.Add((int)ClientPacketId.StartGame, StartGame);
+        m_notifier.Add((int)ClientPacketId.RequestUDPConnection, RequestUDPConnection);
+        m_notifier.Add((int)ClientPacketId.UDPConnectComplete, UDPConnectComplete);
     }
 
     public void CreateAccount(DataPacket packet)
@@ -149,7 +153,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     public void DeleteAccount(DataPacket packet)
@@ -188,7 +196,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     public void Login(DataPacket packet)
@@ -253,7 +265,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     /*
@@ -343,7 +359,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //게임 종료
@@ -406,7 +426,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //캐릭터 삭제
@@ -441,7 +465,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
     
     //캐릭터 선택 후 게임 시작
@@ -473,7 +501,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //캐릭터 정보 요청
@@ -491,7 +523,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(characterStatusPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //방 목록 요청
@@ -504,7 +540,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(roomListPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //스킬 투자
@@ -547,15 +587,24 @@ public class DataHandler
         string id = loginUser[packet.client];
         int characterId = userState[id].characterId;
 
-        int result = roomManager.CreateRoom(packet.client, database.GetHeroData(id, characterId), createRoomData) + 1;
-        
-        CreateRoomResultData resultData = new CreateRoomResultData(result);
-        CreateRoomResultPacket resultDataPacket = new CreateRoomResultPacket(resultData);
+        Console.WriteLine("Id : " + id);
+        Console.WriteLine("characterId : " + characterId);
+
+        int result = roomManager.CreateRoom(packet.client, database.GetHeroData(id, characterId), createRoomData);
+
+        Console.WriteLine("방 생성 번호 : " + result);
+
+        RoomResultData resultData = new RoomResultData(result + 1);
+        RoomResultPacket resultDataPacket = new RoomResultPacket(resultData);
         resultDataPacket.SetPacketId((int)ServerPacketId.CreateRoomResult);
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+        
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //방 입장
@@ -568,33 +617,56 @@ public class DataHandler
         string id = loginUser[packet.client];
         int characterId = userState[id].characterId;
 
-        Result result = Result.Fail;
+        int result = -1;
 
         try
         {
-            if(roomManager.Room[enterRoomData.RoomNum].AddPlayer(packet.client, database.GetHeroData(id, characterId)))
+            Console.WriteLine(enterRoomData.RoomNum + "번 방에 " + packet.client.RemoteEndPoint.ToString() + "유저 입장");
+
+            result = roomManager.Room[enterRoomData.RoomNum].AddPlayer(packet.client, database.GetHeroData(id, characterId));
+
+            if (result != -1)
             {
-                userState[id].state = enterRoomData.RoomNum + 1;
-                result = Result.Success;
-            }
-            else
-            {
-                result = Result.Fail;
+                userState[id].state = enterRoomData.RoomNum;
             }
         }
         catch
         {
             Console.WriteLine("DataHandler::EnterRoom.AddPlayer 에러");
-            result = Result.Fail;
+            result = -1;
         }
 
-        ResultData resultData = new ResultData((byte)result);
-        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        RoomResultData resultData = new RoomResultData(result + 1);
+        RoomResultPacket resultDataPacket = new RoomResultPacket(resultData);
         resultDataPacket.SetPacketId((int)ServerPacketId.EnterRoomResult);
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
+    }
+
+    //방 유저 정보 요청
+    public void RoomUserData(DataPacket packet)
+    {
+        Console.WriteLine("방 유저 정보 요청");
+
+        string id = loginUser[packet.client];
+
+        RoomUserData roomUserData = new RoomUserData(roomManager.Room[userState[id].state]);
+        RoomUserPacket roomUserPacket = new RoomUserPacket(roomUserData);
+        roomUserPacket.SetPacketId((int)ServerPacketId.RoomUserData);
+
+        byte[] msg = CreatePacket(roomUserPacket);
+        packet = new DataPacket(msg, packet.client);
+        
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //방 퇴장
@@ -633,7 +705,11 @@ public class DataHandler
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
-        sendMsgs.Enqueue(packet);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //게임 시작
@@ -642,28 +718,57 @@ public class DataHandler
         Console.WriteLine("게임 시작");
 
         string id = loginUser[packet.client];
-        int roomNum = userState[id].state - 1;
+        int roomNum = userState[id].state;
+
+        byte result = (byte) Result.Success;
+
+        ResultData resultData = new ResultData(result);
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.StartGame);
+
+        byte[] msg = CreatePacket(resultDataPacket);
         
-        //roomManager.Room[roomNum].Socket;
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
+        {
+            Console.WriteLine(roomNum);
+            Console.WriteLine(i);
+
+            if (roomManager.Room[roomNum].Socket[i] != null)
+            {
+                Console.WriteLine(i + "번 유저 : " + roomManager.Room[roomNum].Socket[i].RemoteEndPoint.ToString());
+                packet = new DataPacket(msg, roomManager.Room[roomNum].Socket[i]);
+
+                lock (sendLock)
+                {
+                    sendMsgs.Enqueue(packet);
+                }
+            }
+        }
     }
 
-    //유저 매칭
-    public void MatchUser(DataPacket packet)
+    //UDP 연결
+    public void RequestUDPConnection(DataPacket packet)
     {
-        Console.WriteLine("유저 매칭");
+        Console.WriteLine("UDP 연결");
 
-        int roomNum = packet.msg[0];
+        string id = loginUser[packet.client];
+        int roomNum = userState[id].state;
+
         string[] ip = new string[roomManager.Room[roomNum].PlayerNum];
 
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            ip[i] = roomManager.Room[roomNum].Socket[i].RemoteEndPoint.ToString();
+            if (roomManager.Room[roomNum].Socket[i] != null)
+            {
+                ip[i] = roomManager.Room[roomNum].Socket[i].RemoteEndPoint.ToString();
+            }
         }
 
-        MatchData matchData = new MatchData(ip);
-        MatchDataPacket matchDataPacket = new MatchDataPacket(matchData);
+        UDPConnectionData udpConnctionData = new UDPConnectionData(ip);
+        UDPConnectionPacket udpConnctionDataPacket = new UDPConnectionPacket(udpConnctionData);
+        udpConnctionDataPacket.SetPacketId((int)ServerPacketId.UDPConnection);
 
-        byte[] msg = CreatePacket(matchDataPacket);
+        byte[] msg = CreatePacket(udpConnctionDataPacket);
 
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
@@ -671,8 +776,28 @@ public class DataHandler
             {
                 packet = new DataPacket(msg, roomManager.Room[roomNum].Socket[i]);
                 Console.WriteLine(packet.msg.Length);
-                sendMsgs.Enqueue(packet);
+                lock (sendLock)
+                {
+                    sendMsgs.Enqueue(packet);
+                }
             }
+        }
+    }
+
+    //UDP 연결 완료
+    public void UDPConnectComplete(DataPacket packet)
+    {
+        Console.WriteLine("UDP 연결 완료");
+
+        ResultData resultData = new ResultData();
+        ResultPacket resultPacket = new ResultPacket(resultData);
+        resultPacket.SetPacketId((int)ServerPacketId.StartDungeon);
+
+        packet = new DataPacket(CreatePacket(resultPacket), packet.client);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
         }
     }
 
@@ -771,7 +896,7 @@ public class UserState
 	{
 		id = newId;
         characterId = newCharacterId;
-        state = 0;
+        state = -1;
 	}
 }
 

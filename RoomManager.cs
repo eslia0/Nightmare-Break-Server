@@ -45,7 +45,6 @@ public class RoomManager
         }
 
         room[index] = new Room(createRoomData.RoomName, createRoomData.DungeonId, createRoomData.DungeonLevel);
-        room[index].AddPlayer(player, heroData);
 
         return index;
     }
@@ -102,7 +101,7 @@ public class Room
     public int DungeonLevel { get { return dungeonLevel; } }
     public int[] UserClass { get { return userClass; } }
     public UserData.Gender[] UserGender { get { return userGender; } }
-    public string[] USerName { get { return userName; } }
+    public string[] UserName { get { return userName; } }
     public int[] UserLevel { get { return userLevel; } }
 
     public Room()
@@ -135,7 +134,9 @@ public class Room
     {
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            if(userLevel[i] == 0)
+            Console.WriteLine(socket[i]);
+
+            if(socket[i] == null)
             {
                 return i;
             }
@@ -157,14 +158,14 @@ public class Room
         return -1;
     }
 
-    public bool AddPlayer(Socket newPlayer, HeroData newData)
+    public int AddPlayer(Socket newPlayer, HeroData newData)
     {
         int index = FindEmptySlot();
 
         if (index < 0)
         {
             Console.WriteLine("최대 인원수를 초과하였습니다.");
-            return false;
+            return -1;
         }
 
         userClass[index] = newData.HClass;
@@ -173,7 +174,10 @@ public class Room
         socket[index] = newPlayer;
         playerNum++;
 
-        return true;
+        Console.WriteLine(index + "번 슬롯에 유저 입장");
+        Console.WriteLine(newPlayer.RemoteEndPoint.ToString());
+
+        return index;
     }
 
     public bool DeletePlayer(Socket player)

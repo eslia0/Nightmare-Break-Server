@@ -1,9 +1,9 @@
 ﻿
-public class CreateRoomResultPacket : Packet<CreateRoomResultData>
+public class RoomResultPacket : Packet<RoomResultData>
 {
-    public class CreateRoomResultSerializer : Serializer
+    public class RoomResultSerializer : Serializer
     {
-        public bool Serialize(CreateRoomResultData data)
+        public bool Serialize(RoomResultData data)
         {
             bool ret = true;
             ret &= Serialize(data.RoomNum);
@@ -11,7 +11,7 @@ public class CreateRoomResultPacket : Packet<CreateRoomResultData>
             return ret;
         }
 
-        public bool Deserialize(ref CreateRoomResultData element)
+        public bool Deserialize(ref RoomResultData element)
         {
             if (GetDataSize() == 0)
             {
@@ -24,45 +24,45 @@ public class CreateRoomResultPacket : Packet<CreateRoomResultData>
 
             ret &= Deserialize(ref roomNum);
 
-            element = new CreateRoomResultData(roomNum);
+            element = new RoomResultData(roomNum);
 
             return ret;
         }
     }
     
-    public CreateRoomResultPacket(CreateRoomResultData data) // 데이터로 초기화(송신용)
+    public RoomResultPacket(RoomResultData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
-    public CreateRoomResultPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
+    public RoomResultPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
-        m_data = new CreateRoomResultData();
-        CreateRoomResultSerializer serializer = new CreateRoomResultSerializer();
+        m_data = new RoomResultData();
+        RoomResultSerializer serializer = new RoomResultSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
     }
 
     public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
-        CreateRoomResultSerializer serializer = new CreateRoomResultSerializer();
+        RoomResultSerializer serializer = new RoomResultSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }
 }
 
-public class CreateRoomResultData
+public class RoomResultData
 {
     byte roomNum;
 
     public byte RoomNum { get { return roomNum; } }
 
-    public CreateRoomResultData()
+    public RoomResultData()
     {
         roomNum = 0;
     }
 
-    public CreateRoomResultData(int newRoomNum)
+    public RoomResultData(int newRoomNum)
     {
         roomNum = (byte)newRoomNum;
     }

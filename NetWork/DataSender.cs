@@ -34,10 +34,6 @@ public class DataSender
                     tcpPacket = msgs.Dequeue();
                 }
 
-                Console.WriteLine("패킷 길이 : " + tcpPacket.msg.Length);
-                Console.WriteLine("패킷 출처 : " + tcpPacket.msg[2]);
-                Console.WriteLine("패킷 타입 : " + tcpPacket.msg[3]);
-
                 try
                 {
                     client = tcpPacket.client;
@@ -45,9 +41,9 @@ public class DataSender
 
                     client.Send(msg);
                 }
-                catch
+                catch(Exception e)
                 {
-                    Console.WriteLine("DataSender::DataSend 에러");
+                    Console.WriteLine("DataSender::DataSend 에러" + e.Message);
                 }
             }
         }

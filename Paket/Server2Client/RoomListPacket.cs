@@ -139,7 +139,7 @@ public class RoomListData
 
             for (int j = 0; j < RoomManager.maxPlayerNum; j++)
             {
-                userName[i, j] = rooms[i].USerName[j];
+                userName[i, j] = rooms[i].UserName[j];
                 userClass[i, j] = (byte)rooms[i].UserClass[j];
                 userLevel[i, j] = (byte)rooms[i].UserLevel[j];
             }

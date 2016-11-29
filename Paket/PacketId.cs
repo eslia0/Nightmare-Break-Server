@@ -15,7 +15,11 @@
     EquipUpgrade,
     CreateRoom,
     EnterRoom,
+    RoomUserData,
     ExitRoom,
+    StartGame,
+    RequestUDPConnection,
+    UDPConnectComplete,
 }
 
 public enum ServerPacketId
@@ -34,6 +38,9 @@ public enum ServerPacketId
     EquipUpgradeResult,
     CreateRoomResult,
     EnterRoomResult,
+    RoomUserData,
     ExitRoomResult,
-    Match,
+    StartGame,
+    UDPConnection,
+    StartDungeon,
 }

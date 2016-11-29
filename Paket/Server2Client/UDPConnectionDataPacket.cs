@@ -1,9 +1,9 @@
 ﻿
-public class MatchDataPacket : Packet<MatchData>
+public class UDPConnectionPacket : Packet<UDPConnectionData>
 {
-    public class MatchDataSerializer : Serializer
+    public class UDPConnectionSerializer : Serializer
     {
-        public bool Serialize(MatchData data)
+        public bool Serialize(UDPConnectionData data)
         {
             bool ret = true;
             ret &= Serialize(data.playerNum);
@@ -17,7 +17,7 @@ public class MatchDataPacket : Packet<MatchData>
             return ret;
         }
 
-        public bool Deserialize(ref MatchData element)
+        public bool Deserialize(ref UDPConnectionData element)
         {
             if (GetDataSize() == 0)
             {
@@ -50,39 +50,39 @@ public class MatchDataPacket : Packet<MatchData>
         }
     }
 
-    public MatchDataPacket(MatchData data) // 데이터로 초기화(송신용)
+    public UDPConnectionPacket(UDPConnectionData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
-    public MatchDataPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
+    public UDPConnectionPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
-        m_data = new MatchData();
-        MatchDataSerializer serializer = new MatchDataSerializer();
+        m_data = new UDPConnectionData();
+        UDPConnectionSerializer serializer = new UDPConnectionSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
     }
 
     public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
-        MatchDataSerializer serializer = new MatchDataSerializer();
+        UDPConnectionSerializer serializer = new UDPConnectionSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }
 }
 
-public class MatchData
+public class UDPConnectionData
 {
     public byte playerNum;
     public string[] ip;
 
-    public MatchData()
+    public UDPConnectionData()
     {
         playerNum = 4;
         ip = new string[playerNum];
     }
 
-    public MatchData(string[] newIp)
+    public UDPConnectionData(string[] newIp)
     {
         playerNum = (byte)newIp.Length;
         ip = newIp;

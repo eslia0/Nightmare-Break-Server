@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 
@@ -17,7 +16,7 @@ public class UnityServer
         object receiveLock = new object();
         object sendLock = new object();
 
-        DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse("192.168.0.5"), 8800, receiveLock);
+        DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse("192.168.94.88"), 8800, receiveLock);
         DataHandler dataHandler = new DataHandler(receiveData, sendData, receiveLock, sendLock);
         DataSender dataSender = new DataSender(sendData, sendLock);
 
