@@ -82,7 +82,7 @@ public class DataReceiver
 
         if (asyncData.msgSize <= 0)
         {
-            Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료.");
+            Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료");
             clientSock.Close();
             return;
         }

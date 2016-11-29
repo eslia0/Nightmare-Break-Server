@@ -48,6 +48,7 @@ public class DataHandler
         SetNotifier();
 
         database = AccountDatabase.Instance;
+        database.InitailizeDatabase();
         roomManager = new RoomManager();
 
         Thread handleThread = new Thread(new ThreadStart(DataHandle));
@@ -212,6 +213,9 @@ public class DataHandler
                         result = Result.Success;
                         Console.WriteLine("로그인 성공");
                         loginUser.Add(packet.client, accountData.Id);
+                        userState.Add(accountData.Id, new UserState(accountData.Id, -1));
+
+                        database.AddUserData(accountData.Id);
                     }
                     else
                     {
@@ -347,7 +351,6 @@ public class DataHandler
     {
         try
         {
-            Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "가 접속을 종료했습니다.");
             packet.client.Close();
 
             string id = loginUser[packet.client];
@@ -363,7 +366,7 @@ public class DataHandler
                 database.UserData.Remove(id);
 
                 loginUser.Remove(packet.client);
-            }            
+            }
         }
         catch
         {
@@ -390,7 +393,6 @@ public class DataHandler
             database.FileSave(id + ".data", userData);
 
             result = Result.Success;
-
         }
         catch
         {
@@ -456,8 +458,7 @@ public class DataHandler
 
         try
         {
-            UserState user = new UserState(id, selectCharacterData.Index);
-            userState.Add(id, user);
+            userState[id] = new UserState(id, selectCharacterData.Index);
             result = Result.Success;
         }
         catch
@@ -546,19 +547,10 @@ public class DataHandler
         string id = loginUser[packet.client];
         int characterId = userState[id].characterId;
 
-        Result result = Result.Fail;
-
-        if (roomManager.CreateRoom(packet.client, database.GetHeroData(id, characterId), createRoomData) > 0)
-        {
-            result = Result.Success;
-        }
-        else
-        {
-            result = Result.Fail;
-        }
-
-        ResultData resultData = new ResultData((byte)result);
-        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        int result = roomManager.CreateRoom(packet.client, database.GetHeroData(id, characterId), createRoomData) + 1;
+        
+        CreateRoomResultData resultData = new CreateRoomResultData(result);
+        CreateRoomResultPacket resultDataPacket = new CreateRoomResultPacket(resultData);
         resultDataPacket.SetPacketId((int)ServerPacketId.CreateRoomResult);
 
         byte[] msg = CreatePacket(resultDataPacket);

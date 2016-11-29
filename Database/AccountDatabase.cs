@@ -17,7 +17,8 @@ public class AccountDatabase
         {
             if(instance == null)
             {
-                return new AccountDatabase();
+                instance = new AccountDatabase();
+                return instance;
             }
             else
             {
@@ -101,7 +102,7 @@ public class AccountDatabase
     public Hashtable UserData { get { return userData; } }
 
     //초기화
-    public AccountDatabase()
+    public void InitailizeDatabase()
     {
         bin = new BinaryFormatter();
         fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
@@ -242,9 +243,9 @@ public class AccountDatabase
 
         try
         {
-            bin.Serialize(fs, data);
             Console.WriteLine(null == fs);
             Console.WriteLine(null == data);
+            bin.Serialize(fs, data);
         }
         catch (Exception e)
         {

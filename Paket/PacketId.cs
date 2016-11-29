@@ -30,6 +30,8 @@ public enum ServerPacketId
     SelectCharacterResult,
     RoomList,
     CharacterStatus,
+    SkillUpResult,
+    EquipUpgradeResult,
     CreateRoomResult,
     EnterRoomResult,
     ExitRoomResult,
