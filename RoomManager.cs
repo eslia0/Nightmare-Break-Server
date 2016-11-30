@@ -69,6 +69,7 @@ public class RoomManager
 
         if(room[roomNum].PlayerNum <= 0)
         {
+            Console.WriteLine("모든 플레이어가 나갔습니다.");
             room[roomNum] = new Room();
         }
     }
@@ -93,6 +94,7 @@ public class Room
     UserData.Gender[] userGender;
     string[] userName;
     int[] userLevel;
+    bool[] ready;
 
     public Socket[] Socket { get { return socket; } }
     public int PlayerNum { get { return playerNum; } }
@@ -103,6 +105,7 @@ public class Room
     public UserData.Gender[] UserGender { get { return userGender; } }
     public string[] UserName { get { return userName; } }
     public int[] UserLevel { get { return userLevel; } }
+    public bool[] Ready { get { return ready; } }
 
     public Room()
     {
@@ -115,6 +118,7 @@ public class Room
         userGender = new UserData.Gender[RoomManager.maxPlayerNum];
         userName = new string[RoomManager.maxPlayerNum];
         userLevel = new int[RoomManager.maxPlayerNum];
+        ready = new bool[RoomManager.maxPlayerNum];
     }
 
     public Room(string newName, int newDungeonId, int newDungeonLevel)
@@ -128,6 +132,7 @@ public class Room
         userGender = new UserData.Gender[RoomManager.maxPlayerNum];
         userName = new string[RoomManager.maxPlayerNum];
         userLevel = new int[RoomManager.maxPlayerNum];
+        ready = new bool[RoomManager.maxPlayerNum];
     }
 
     public int FindEmptySlot()
@@ -175,7 +180,6 @@ public class Room
         playerNum++;
 
         Console.WriteLine(index + "번 슬롯에 유저 입장");
-        Console.WriteLine(newPlayer.RemoteEndPoint.ToString());
 
         return index;
     }

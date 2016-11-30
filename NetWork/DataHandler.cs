@@ -327,6 +327,16 @@ public class DataHandler
         {
             if (loginUser.ContainsKey(packet.client))
             {
+                if (userState.ContainsKey(id))
+                {
+                    if (userState[id].state >= 0)
+                    {
+                        roomManager.ExitRoom(userState[id].state, packet.client);
+                    }
+
+                    userState.Remove(id);
+                }
+
                 loginUser.Remove(packet.client);
                 Console.WriteLine(id + "로그아웃");
                 result = Result.Success;
@@ -377,6 +387,11 @@ public class DataHandler
 
             if (userState.ContainsKey(id))
             {
+                if(userState[id].state >= 0)
+                {
+                    roomManager.ExitRoom(userState[id].state, packet.client);
+                }
+
                 userState.Remove(id);
             }
 
@@ -397,7 +412,7 @@ public class DataHandler
     //캐릭터 생성
     public void CreateCharacter(DataPacket packet)
     {
-        Console.WriteLine("캐릭터 생성");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 생성");
 
         CreateCharacterPacket createCharacterPacket = new CreateCharacterPacket(packet.msg);
         CreateCharacterData createCharacterData = createCharacterPacket.GetData();
@@ -436,12 +451,22 @@ public class DataHandler
     //캐릭터 삭제
     public void DeleteCharacter(DataPacket packet)
     {
-        Console.WriteLine("캐릭터 삭제");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 삭제");
 
         DeleteCharacterPacket deleteCharacterPacket = new DeleteCharacterPacket(packet.msg);
         DeleteCharacterData deleteCharacterData = deleteCharacterPacket.GetData();
 
-        string id = loginUser[packet.client];
+        string id = "";
+
+        try
+        {
+            id = loginUser[packet.client];
+        }
+        catch
+        {
+            Console.WriteLine("Datahandler::SelectCharacter.loginUser 에러");
+        }
+
         UserData userData = database.GetUserData(id);
 
         Result result = Result.Fail;
@@ -475,12 +500,21 @@ public class DataHandler
     //캐릭터 선택 후 게임 시작
     public void SelectCharacter(DataPacket packet)
     {
-        Console.WriteLine("캐릭터 선택");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 선택");
 
         SelectCharacterPacket selectCharacterPacket = new SelectCharacterPacket(packet.msg);
         SelectCharacterData selectCharacterData = selectCharacterPacket.GetData();
 
-        string id = loginUser[packet.client];
+        string id = "";
+
+        try
+        {
+            id = loginUser[packet.client];
+        }
+        catch
+        {
+            Console.WriteLine("Datahandler::SelectCharacter.loginUser 에러");
+        } 
 
         Result result = Result.Fail;
 
@@ -511,7 +545,7 @@ public class DataHandler
     //캐릭터 정보 요청
     public void RequestCharacterStatus(DataPacket packet)
     {
-        Console.WriteLine("캐릭터 정보 요청");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 정보 요청");
 
         string id = loginUser[packet.client];
         int character = userState[id].characterId;
@@ -533,7 +567,7 @@ public class DataHandler
     //방 목록 요청
     public void RequestRoomList(DataPacket packet)
     {
-        Console.WriteLine("방 목록 요청");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 목록 요청");
 
         RoomListPacket roomListPacket = roomManager.GetRoomList();
         roomListPacket.SetPacketId((int)ServerPacketId.RoomList);
@@ -550,7 +584,7 @@ public class DataHandler
     //스킬 투자
     public void SkillUp(DataPacket packet)
     {
-        Console.WriteLine("스킬 투자");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "스킬 투자");
         SkillUpPacket skillUpPacket = new SkillUpPacket(packet.msg);
         SkillUpData skillUpData = skillUpPacket.GetData();
 
@@ -565,7 +599,7 @@ public class DataHandler
     //장비 강화
     public void EquipUpgrade(DataPacket packet)
     {
-        Console.WriteLine("장비 강화");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "장비 강화");
         EquipUpgradePacket equipUpgradePacket = new EquipUpgradePacket(packet.msg);
         EquipUpgradeData equipUpgradeData = equipUpgradePacket.GetData();
 
@@ -580,7 +614,7 @@ public class DataHandler
     //방 생성
     public void CreateRoom(DataPacket packet)
     {
-        Console.WriteLine("방 생성");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 생성");
         CreateRoomPacket createRoomPacket = new CreateRoomPacket(packet.msg);
         CreateRoomData createRoomData = createRoomPacket.GetData();
 
@@ -610,7 +644,7 @@ public class DataHandler
     //방 입장
     public void EnterRoom(DataPacket packet)
     {
-        Console.WriteLine("방 입장");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 입장");
         EnterRoomPacket enterRoomPacket = new EnterRoomPacket(packet.msg);
         EnterRoomData enterRoomData = enterRoomPacket.GetData();
 
@@ -652,7 +686,7 @@ public class DataHandler
     //방 유저 정보 요청
     public void RoomUserData(DataPacket packet)
     {
-        Console.WriteLine("방 유저 정보 요청");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 유저 정보 요청");
 
         string id = loginUser[packet.client];
 
@@ -672,7 +706,7 @@ public class DataHandler
     //방 퇴장
     public void ExitRoom(DataPacket packet)
     {
-        Console.WriteLine("방 퇴장");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 퇴장");
         ExitRoomPacket exitRoomPacket = new ExitRoomPacket(packet.msg);
         ExitRoomData exitRoomData = exitRoomPacket.GetData();
 
@@ -715,7 +749,7 @@ public class DataHandler
     //게임 시작
     public void StartGame(DataPacket packet)
     {
-        Console.WriteLine("게임 시작");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "게임 시작");
 
         string id = loginUser[packet.client];
         int roomNum = userState[id].state;
@@ -749,7 +783,7 @@ public class DataHandler
     //UDP 연결
     public void RequestUDPConnection(DataPacket packet)
     {
-        Console.WriteLine("UDP 연결");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "UDP 연결");
 
         string id = loginUser[packet.client];
         int roomNum = userState[id].state;
@@ -770,35 +804,48 @@ public class DataHandler
 
         byte[] msg = CreatePacket(udpConnctionDataPacket);
 
-        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
+        packet = new DataPacket(msg, packet.client);
+
+        lock (sendLock)
         {
-            if (roomManager.Room[roomNum].Socket[i] != null)
-            {
-                packet = new DataPacket(msg, roomManager.Room[roomNum].Socket[i]);
-                Console.WriteLine(packet.msg.Length);
-                lock (sendLock)
-                {
-                    sendMsgs.Enqueue(packet);
-                }
-            }
+            sendMsgs.Enqueue(packet);
         }
     }
 
     //UDP 연결 완료
     public void UDPConnectComplete(DataPacket packet)
     {
-        Console.WriteLine("UDP 연결 완료");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "UDP 연결 완료");
+
+        string id = loginUser[packet.client];
+        int roomNum = userState[id].state;
+        int playerNum = roomManager.Room[roomNum].FindPlayerWithSocket(packet.client);
+        roomManager.Room[roomNum].Ready[playerNum] = true;
+
+        for (int i = 0; i < roomManager.Room[roomNum].PlayerNum; i++)
+        {
+            if (!roomManager.Room[roomNum].Ready[i])
+            {
+                return;
+            }
+        }
 
         ResultData resultData = new ResultData();
         ResultPacket resultPacket = new ResultPacket(resultData);
         resultPacket.SetPacketId((int)ServerPacketId.StartDungeon);
 
-        packet = new DataPacket(CreatePacket(resultPacket), packet.client);
-
-        lock (sendLock)
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            sendMsgs.Enqueue(packet);
-        }
+            if(roomManager.Room[roomNum].Socket[i] != null)
+            {
+                packet = new DataPacket(CreatePacket(resultPacket), roomManager.Room[roomNum].Socket[i]);
+
+                lock (sendLock)
+                {
+                    sendMsgs.Enqueue(packet);
+                }
+            }            
+        }        
     }
 
     //패킷의 헤더 생성

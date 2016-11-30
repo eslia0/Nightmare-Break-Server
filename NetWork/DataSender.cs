@@ -27,8 +27,6 @@ public class DataSender
         {            
             if (msgs.Count != 0)
             {
-                Console.WriteLine("메시지전송");
-
                 lock (sendLock)
                 {
                     tcpPacket = msgs.Dequeue();

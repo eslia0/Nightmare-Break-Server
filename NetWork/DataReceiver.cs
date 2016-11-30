@@ -138,8 +138,6 @@ public class DataReceiver
             return;
         }
 
-        Console.WriteLine("받은 메시지 길이 : " + asyncData.msgSize);
-
         if (asyncData.msgSize >= UnityServer.packetId + UnityServer.packetSource)
 		{
 			Array.Resize (ref asyncData.msg, asyncData.msgSize);
@@ -160,7 +158,15 @@ public class DataReceiver
 		}
 
 		asyncData = new AsyncData(clientSock);
-		clientSock.BeginReceive (asyncData.msg, 0, UnityServer.packetLength, SocketFlags.None, asyncReceiveLengthCallBack, (Object)asyncData);
+        try
+        {
+            clientSock.BeginReceive(asyncData.msg, 0, UnityServer.packetLength, SocketFlags.None, asyncReceiveLengthCallBack, (Object)asyncData);
+        }
+        catch
+        {
+            Console.WriteLine ("DataReceiver::BeginReceive 에러");
+        }
+		
 	}
 }
 
