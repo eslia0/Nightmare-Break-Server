@@ -764,9 +764,6 @@ public class DataHandler
         
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            Console.WriteLine(roomNum);
-            Console.WriteLine(i);
-
             if (roomManager.Room[roomNum].Socket[i] != null)
             {
                 Console.WriteLine(i + "번 유저 : " + roomManager.Room[roomNum].Socket[i].RemoteEndPoint.ToString());
@@ -783,7 +780,7 @@ public class DataHandler
     //UDP 연결
     public void RequestUDPConnection(DataPacket packet)
     {
-        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "UDP 연결");
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "UDP 연결 요청");
 
         string id = loginUser[packet.client];
         int roomNum = userState[id].state;
@@ -830,6 +827,8 @@ public class DataHandler
             }
         }
 
+        Console.WriteLine(roomManager.Room[roomNum] + "번 방 게임 시작");
+
         ResultData resultData = new ResultData();
         ResultPacket resultPacket = new ResultPacket(resultData);
         resultPacket.SetPacketId((int)ServerPacketId.StartDungeon);
@@ -839,6 +838,8 @@ public class DataHandler
             if(roomManager.Room[roomNum].Socket[i] != null)
             {
                 packet = new DataPacket(CreatePacket(resultPacket), roomManager.Room[roomNum].Socket[i]);
+
+                Console.WriteLine("보내는 ip : " + roomManager.Room[roomNum].Socket[i]);
 
                 lock (sendLock)
                 {

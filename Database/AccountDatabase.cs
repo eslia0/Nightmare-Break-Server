@@ -243,8 +243,6 @@ public class AccountDatabase
 
         try
         {
-            Console.WriteLine(null == fs);
-            Console.WriteLine(null == data);
             bin.Serialize(fs, data);
         }
         catch (Exception e)
