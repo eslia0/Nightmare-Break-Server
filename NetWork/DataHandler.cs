@@ -839,8 +839,6 @@ public class DataHandler
             {
                 packet = new DataPacket(CreatePacket(resultPacket), roomManager.Room[roomNum].Socket[i]);
 
-                Console.WriteLine("보내는 ip : " + roomManager.Room[roomNum].Socket[i]);
-
                 lock (sendLock)
                 {
                     sendMsgs.Enqueue(packet);
