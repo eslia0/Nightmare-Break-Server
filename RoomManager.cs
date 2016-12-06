@@ -139,8 +139,6 @@ public class Room
     {
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            Console.WriteLine(socket[i]);
-
             if(socket[i] == null)
             {
                 return i;

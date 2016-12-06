@@ -76,14 +76,17 @@ public class DataReceiver
             //Console.ForegroundColor = ConsoleColor.Red;
             //Console.ForegroundColor = ConsoleColor.Black;
             Console.WriteLine("DataReceiver::HandleAsyncReceiveLength.EndReceive 에러");
+            DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
             clientSock.Close();
+            
             return;
         }
 
         if (asyncData.msgSize <= 0)
         {
             Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료");
-            clientSock.Close();
+            //DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
+
             return;
         }
 

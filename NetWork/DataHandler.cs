@@ -11,6 +11,21 @@ public enum Result
 
 public class DataHandler
 {
+    private static DataHandler instance;
+
+    public static DataHandler Instance
+    {
+        get
+        {
+            if(instance == null)
+            {
+                instance = new DataHandler();
+            }
+
+            return instance;
+        }
+    }
+
     public enum Source
     {
         ServerSource = 0,
@@ -35,6 +50,25 @@ public class DataHandler
     RecvNotifier recvNotifier;
     public delegate void RecvNotifier(DataPacket packet);
     private Dictionary<int, RecvNotifier> m_notifier = new Dictionary<int, RecvNotifier>();
+
+    public DataHandler()
+    {
+        receiveMsgs = new Queue<DataPacket>();
+        sendMsgs = new Queue<DataPacket>();
+        receiveLock = new object();
+        sendLock = new object();
+        loginUser = new Dictionary<Socket, string>();
+        userState = new Dictionary<string, UserState>();
+
+        SetNotifier();
+
+        database = AccountDatabase.Instance;
+        database.InitailizeDatabase();
+        roomManager = new RoomManager();
+
+        Thread handleThread = new Thread(new ThreadStart(DataHandle));
+        handleThread.Start();
+    }
 
     public DataHandler(Queue<DataPacket> receiveQueue, Queue<DataPacket> sendQueue, object newReceiveLock, object newSendLock)
     {
@@ -379,22 +413,38 @@ public class DataHandler
     //게임 종료
     public void GameClose(DataPacket packet)
     {
+        string id = null;
+
         try
         {
-            packet.client.Close();
+            Console.WriteLine("게임 종료 : " + packet.client.RemoteEndPoint.ToString());
+            id = loginUser[packet.client];
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::GameClose.socket 에러");
+        }
 
-            string id = loginUser[packet.client];
 
+        try
+        {
             if (userState.ContainsKey(id))
             {
-                if(userState[id].state >= 0)
+                if (userState[id].state >= 0)
                 {
                     roomManager.ExitRoom(userState[id].state, packet.client);
                 }
 
                 userState.Remove(id);
             }
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::GameClose.ContainsKey - roomManager 에러");
+        }
 
+        try
+        {
             if (loginUser.ContainsKey(packet.client))
             {
                 database.FileSave(id + ".data", database.GetUserData(id));
@@ -405,7 +455,16 @@ public class DataHandler
         }
         catch
         {
-            Console.WriteLine("DataHandler::LoginUser.Close 에러");
+            Console.WriteLine("DataHandler::GameClose.ContainsKey - database 에러");
+        }
+
+        try
+        {
+            packet.client.Close();
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::GameClose.Close 에러");
         }
     }
 
