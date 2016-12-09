@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\AccountDatabase.cs" />
+    <Compile Include="Database\MonsterDatabase.cs" />
     <Compile Include="Database\UserData.cs" />
     <Compile Include="Paket\Client2Server\EquipUpgradePacket.cs" />
     <Compile Include="Paket\Client2Server\ExitRoomPacket.cs" />

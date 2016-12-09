@@ -44,7 +44,7 @@ public class UserData
     {
         int index = FindEmptySlot();
 
-        if (index <= 0)
+        if (index < 0)
         {
             Console.WriteLine("영웅 최대 생성수를 초과하였습니다.");
             return false;

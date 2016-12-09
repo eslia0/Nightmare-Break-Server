@@ -1,5 +1,4 @@
-﻿
-public class UDPConnectionPacket : Packet<UDPConnectionData>
+﻿public class UDPConnectionPacket : Packet<UDPConnectionData>
 {
     public class UDPConnectionSerializer : Serializer
     {
@@ -10,7 +9,7 @@ public class UDPConnectionPacket : Packet<UDPConnectionData>
 
             for (int i = 0; i < data.playerNum; i++)
             {
-                ret &= Serialize(data.ip[i]);
+                ret &= Serialize(data.endPoint[i]);
                 ret &= Serialize(',');
             }
 
@@ -40,10 +39,11 @@ public class UDPConnectionPacket : Packet<UDPConnectionData>
             }
 
             element.playerNum = playerNum;
+            element.endPoint = new string[element.playerNum];
 
             for (int i = 0; i < playerNum; i++)
             {
-                element.ip[i] = str[i];
+                element.endPoint[i] = str[i];
             }
 
             return ret;
@@ -74,17 +74,17 @@ public class UDPConnectionPacket : Packet<UDPConnectionData>
 public class UDPConnectionData
 {
     public byte playerNum;
-    public string[] ip;
+    public string[] endPoint;
 
     public UDPConnectionData()
     {
-        playerNum = 4;
-        ip = new string[playerNum];
+        playerNum = 0;
+        endPoint = new string[playerNum];
     }
 
     public UDPConnectionData(string[] newIp)
     {
         playerNum = (byte)newIp.Length;
-        ip = newIp;
+        endPoint = newIp;
     }
 }

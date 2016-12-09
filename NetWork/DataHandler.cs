@@ -164,7 +164,7 @@ public class DataHandler
 
         try
         {
-            if (database.AddAccountData(accountData.Id, accountData.Password))
+            if (database.AddAccountData(accountData))
             {
                 result = Result.Success;
                 Console.WriteLine("가입 성공");
@@ -212,7 +212,7 @@ public class DataHandler
                 result = Result.Success;
                 Console.WriteLine("탈퇴 성공");
             }
-            else if (database.DeleteAccountData(accountData.Id, accountData.Password) == Result.Fail)
+            else
             {
                 result = Result.Fail;
                 Console.WriteLine("탈퇴 실패");
@@ -248,8 +248,8 @@ public class DataHandler
 
         Result result = Result.Fail;
 
-        try
-        {
+        //try
+        //{
             if (database.AccountData.Contains(accountData.Id))
             {
                 if (((AccountData)database.AccountData[accountData.Id]).Password == accountData.Password)
@@ -270,6 +270,8 @@ public class DataHandler
                         if (CompareIP(GetSocket(accountData.Id).RemoteEndPoint.ToString(), packet.client.RemoteEndPoint.ToString()))
                         {
                             loginUser.Remove(GetSocket(accountData.Id));
+                            userState.Remove(accountData.Id);
+                        database.DeleteUserData(accountData.Id);
                             Console.WriteLine("현재 접속중 해제");
                         }
                         result = Result.Fail;
@@ -286,12 +288,12 @@ public class DataHandler
                 Console.WriteLine("존재하지 않는 아이디입니다.");
                 result = Result.Fail;
             }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::Login.ContainsValue 에러");
-            result = Result.Fail;
-        }
+        //}
+        //catch
+        //{
+        //    Console.WriteLine("DataHandler::Login.ContainsValue 에러");
+        //    result = Result.Fail;
+        //}
 
         ResultData resultData = new ResultData((byte)result);
         ResultPacket resultDataPacket = new ResultPacket(resultData);
@@ -413,7 +415,7 @@ public class DataHandler
     //게임 종료
     public void GameClose(DataPacket packet)
     {
-        string id = null;
+        string id = "";
 
         try
         {
@@ -423,9 +425,9 @@ public class DataHandler
         catch
         {
             Console.WriteLine("DataHandler::GameClose.socket 에러");
+            Console.WriteLine("로그인하지 않았습니다.");
         }
-
-
+        
         try
         {
             if (userState.ContainsKey(id))
@@ -441,6 +443,7 @@ public class DataHandler
         catch
         {
             Console.WriteLine("DataHandler::GameClose.ContainsKey - roomManager 에러");
+            Console.WriteLine("방에 입장하지 않았습니다.");
         }
 
         try
@@ -523,21 +526,20 @@ public class DataHandler
         }
         catch
         {
-            Console.WriteLine("Datahandler::SelectCharacter.loginUser 에러");
+            Console.WriteLine("Datahandler::DeleteCharacter.loginUser 에러");
         }
 
         UserData userData = database.GetUserData(id);
-
         Result result = Result.Fail;
 
         try
         {
-            result = Result.Success;
             userData.DeleteHero(deleteCharacterData.Index);
+            result = Result.Success;
         }
         catch
         {
-            Console.WriteLine("DataHandler::Createcharacter.CreateHero 에러");
+            Console.WriteLine("DataHandler::DeleteCharacter.DeleteHero에러");
             result = Result.Fail;
         }
 
@@ -584,7 +586,7 @@ public class DataHandler
         }
         catch
         {
-            Console.WriteLine("DataHandler::Createcharacter.CreateHero 에러");
+            Console.WriteLine("DataHandler::SelectCharacter.AddUserData 에러");
             result = Result.Fail;
         }
 
@@ -677,8 +679,25 @@ public class DataHandler
         CreateRoomPacket createRoomPacket = new CreateRoomPacket(packet.msg);
         CreateRoomData createRoomData = createRoomPacket.GetData();
 
-        string id = loginUser[packet.client];
+        string id = "";
+
+        try
+        {
+            id = loginUser[packet.client];
+        }
+        catch
+        {
+            Console.WriteLine("현재 로그인 되어있지 않은 아이디 입니다.");
+            return;
+        }
+
         int characterId = userState[id].characterId;
+
+        if (characterId == -1)
+        {
+            Console.WriteLine("캐릭터가 선택되지 않았습니다.");
+            return;
+        }
 
         Console.WriteLine("Id : " + id);
         Console.WriteLine("characterId : " + characterId);
@@ -707,8 +726,25 @@ public class DataHandler
         EnterRoomPacket enterRoomPacket = new EnterRoomPacket(packet.msg);
         EnterRoomData enterRoomData = enterRoomPacket.GetData();
 
-        string id = loginUser[packet.client];
+        string id = "";
+
+        try
+        {
+            id = loginUser[packet.client];
+        }
+        catch
+        {
+            Console.WriteLine("현재 로그인 되어있지 않은 아이디 입니다.");
+            return;
+        }
+        
         int characterId = userState[id].characterId;
+
+        if (characterId == -1)
+        {
+            Console.WriteLine("캐릭터가 선택되지 않았습니다.");
+            return;
+        }
 
         int result = -1;
 
@@ -776,15 +812,9 @@ public class DataHandler
 
         try
         {
-            if (roomManager.Room[exitRoomData.RoomNum].DeletePlayer(packet.client))
-            {
-                userState[id].state = 0;
-                result = Result.Success;
-            }
-            else
-            {
-                result = Result.Fail;
-            }
+            roomManager.ExitRoom(userState[id].state, packet.client);
+            userState[id].state = 0;
+            result = Result.Success;
         }
         catch
         {
@@ -812,6 +842,12 @@ public class DataHandler
 
         string id = loginUser[packet.client];
         int roomNum = userState[id].state;
+
+        if (roomNum < 0)
+        {
+            Console.WriteLine("방에 입장해있지 않습니다.");
+            return;
+        }
 
         byte result = (byte) Result.Success;
 
