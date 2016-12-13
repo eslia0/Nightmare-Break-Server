@@ -139,6 +139,7 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.Login, Login);
         m_notifier.Add((int)ClientPacketId.Logout, Logout);
         m_notifier.Add((int)ClientPacketId.GameClose, GameClose);
+        m_notifier.Add((int)ClientPacketId.RequestCharacterList, RequestCharacterList);
         m_notifier.Add((int)ClientPacketId.CreateCharacter, CreateCharacter);
         m_notifier.Add((int)ClientPacketId.DeleteCharacter, DeleteCharacter);
         m_notifier.Add((int)ClientPacketId.SelectCharacter, SelectCharacter);
@@ -147,8 +148,8 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.ExitRoom, ExitRoom);
         m_notifier.Add((int)ClientPacketId.RoomUserData, RoomUserData);
         m_notifier.Add((int)ClientPacketId.StartGame, StartGame);
-        m_notifier.Add((int)ClientPacketId.RequestUDPConnection, RequestUDPConnection);
-        m_notifier.Add((int)ClientPacketId.UDPConnectComplete, UDPConnectComplete);
+        m_notifier.Add((int)ClientPacketId.RequestUdpConnection, RequestUDPConnection);
+        m_notifier.Add((int)ClientPacketId.UdpConnectComplete, UDPConnectComplete);
     }
 
     public void CreateAccount(DataPacket packet)
@@ -271,7 +272,7 @@ public class DataHandler
                         {
                             loginUser.Remove(GetSocket(accountData.Id));
                             userState.Remove(accountData.Id);
-                        database.DeleteUserData(accountData.Id);
+                            database.DeleteUserData(accountData.Id);
                             Console.WriteLine("현재 접속중 해제");
                         }
                         result = Result.Fail;
@@ -468,6 +469,27 @@ public class DataHandler
         catch
         {
             Console.WriteLine("DataHandler::GameClose.Close 에러");
+        }
+    }
+
+    //캐릭터 리스트 요청
+    public void RequestCharacterList(DataPacket packet)
+    {
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 리스트 요청");
+
+        string id = loginUser[packet.client];
+        UserData userData = database.GetUserData(id);
+
+        CharacterList characterList = new CharacterList(database.GetUserData(id).HeroData);
+        CharacterListPacket characterListPacket = new CharacterListPacket(characterList);
+        characterListPacket.SetPacketId((int)ServerPacketId.CharacterList);
+
+        byte[] msg = CreatePacket(characterListPacket);
+        packet = new DataPacket(msg, packet.client);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
         }
     }
 
@@ -902,6 +924,14 @@ public class DataHandler
         {
             sendMsgs.Enqueue(packet);
         }
+    }
+
+    //몬스터 소환 리스트 요청
+    public void RequestSpawnMonsterList(DataPacket packet)
+    {
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "몬스터 소환 리스트 요청");
+
+
     }
 
     //UDP 연결 완료

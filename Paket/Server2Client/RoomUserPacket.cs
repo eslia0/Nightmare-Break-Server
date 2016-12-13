@@ -40,6 +40,7 @@ public class RoomUserPacket : Packet<RoomUserData>
                 ret &= Deserialize(ref userClass[i]);
                 ret &= Deserialize(ref userLevel[i]);
             }
+
             element = new RoomUserData(userName, userClass, userLevel);
 
             return ret;

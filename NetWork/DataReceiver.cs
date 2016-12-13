@@ -85,7 +85,11 @@ public class DataReceiver
         if (asyncData.msgSize <= 0)
         {
             Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료");
-            DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
+
+            if (clientSock.Connected)
+            {
+                DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
+            }
 
             return;
         }

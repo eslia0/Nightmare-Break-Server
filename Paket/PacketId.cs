@@ -6,6 +6,7 @@
     Login,
     Logout,
     GameClose,
+    RequestCharacterList,
     CreateCharacter,
     DeleteCharacter,
     SelectCharacter,
@@ -18,8 +19,10 @@
     RoomUserData,
     ExitRoom,
     StartGame,
-    RequestUDPConnection,
-    UDPConnectComplete,
+    RequestUdpConnection,
+    RequestSpawnMonsterList,
+    RequestDungeonData,
+    UdpConnectComplete,
 }
 
 public enum ServerPacketId
@@ -29,6 +32,7 @@ public enum ServerPacketId
     DeleteAccountResult,
     LoginResult,
     LogoutResult,
+    CharacterList,
     CreateCharacterResult,
     DeleteChracterResult,
     SelectCharacterResult,
@@ -41,6 +45,8 @@ public enum ServerPacketId
     RoomUserData,
     ExitRoomResult,
     StartGame,
+    SpawnMonsterList,
+    DungeonData,
     UDPConnection,
     StartDungeon,
 }

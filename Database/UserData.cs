@@ -15,13 +15,13 @@ public class UserData
     HeroData[] heroData;
 
     public HeroData[] HeroData { get { return heroData; } }
-    
+
     public UserData(string newId)
     {
         Id = newId;
         heroData = new HeroData[maxHeroNum];
 
-        for(int i =0; i< maxHeroNum; i++)
+        for (int i = 0; i < maxHeroNum; i++)
         {
             heroData[i] = new HeroData();
         }
