@@ -1,25 +1,26 @@
 ﻿using System.Text;
 
-public class RoomUserPacket : Packet<RoomUserData>
+public class RoomUserListPacket : Packet<RoomUserList>
 {
-    public class RoomUserSerializer : Serializer
+    public class RoomUserListSerializer : Serializer
     {
-        public bool Serialize(RoomUserData data)
+        public bool Serialize(RoomUserList data)
         {
             bool ret = true;
 
             for (int i = 0; i < RoomManager.maxPlayerNum; i++)
             {
-                ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.UserName[i]).Length);
-                ret &= Serialize(data.UserName[i]);
-                ret &= Serialize(data.UserClass[i]);
-                ret &= Serialize(data.UserLevel[i]);
+                ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.RoomUserData[i].UserName).Length);
+                ret &= Serialize(data.RoomUserData[i].UserName);
+                ret &= Serialize((byte)data.RoomUserData[i].UserGender);
+                ret &= Serialize((byte)data.RoomUserData[i].UserClass);
+                ret &= Serialize((byte)data.RoomUserData[i].UserLevel);
             }
 
             return ret;
         }
 
-        public bool Deserialize(ref RoomUserData element)
+        public bool Deserialize(ref RoomUserList element)
         {
             if (GetDataSize() == 0)
             {
@@ -30,6 +31,7 @@ public class RoomUserPacket : Packet<RoomUserData>
             bool ret = true;
             byte[] userNameLength = new byte[RoomManager.maxPlayerNum];
             string[] userName = new string[RoomManager.maxPlayerNum];
+            byte[] userGender = new byte[RoomManager.maxPlayerNum];
             byte[] userClass = new byte[RoomManager.maxPlayerNum];
             byte[] userLevel = new byte[RoomManager.maxPlayerNum];
 
@@ -37,68 +39,66 @@ public class RoomUserPacket : Packet<RoomUserData>
             {
                 ret &= Deserialize(ref userNameLength[i]);
                 ret &= Deserialize(out userName[i], userNameLength[i]);
+                ret &= Deserialize(ref userGender[i]);
                 ret &= Deserialize(ref userClass[i]);
                 ret &= Deserialize(ref userLevel[i]);
             }
 
-            element = new RoomUserData(userName, userClass, userLevel);
+            element = new RoomUserList(userName, userGender, userClass, userLevel);
 
             return ret;
         }
     }
 
-    public RoomUserPacket(RoomUserData data) // 데이터로 초기화(송신용)
+    public RoomUserListPacket(RoomUserList data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
-    public RoomUserPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
+    public RoomUserListPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
-        m_data = new RoomUserData();
-        RoomUserSerializer serializer = new RoomUserSerializer();
+        m_data = new RoomUserList();
+        RoomUserListSerializer serializer = new RoomUserListSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
     }
 
     public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
-        RoomUserSerializer serializer = new RoomUserSerializer();
+        RoomUserListSerializer serializer = new RoomUserListSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }
 }
 
-public class RoomUserData
+public class RoomUserList
 {
-    string[] userName;
-    byte[] userClass;
-    byte[] userLevel;
+    RoomUserData[] roomUserData;
 
-    public string[] UserName { get { return userName; } }
-    public byte[] UserClass { get { return userClass; } }
-    public byte[] UserLevel { get { return userLevel; } }
+    public RoomUserData[] RoomUserData { get { return roomUserData; } }
 
-    public RoomUserData()
+    public RoomUserList()
     {
-        userName = new string[RoomManager.maxPlayerNum];
-        userClass = new byte[RoomManager.maxPlayerNum];
-        userLevel = new byte[RoomManager.maxPlayerNum];
-    }
+        roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
 
-    public RoomUserData(string[] newUserName, byte[] newUserClass, byte[] newUserLevel)
-    {
-        userName = newUserName;
-        userClass = newUserClass;
-        userLevel = newUserLevel;
-    }
-
-    public RoomUserData(Room room)
-    {
-        for(int i =0; i< RoomManager.maxPlayerNum; i++)
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            userName[i] = room.UserName[i];
-            userClass[i] = (byte)room.UserClass[i];
-            userLevel[i] = (byte)room.UserLevel[i];
-        }        
+            roomUserData[i] = new RoomUserData();
+        }
+    }
+
+    public RoomUserList(string[] newUserName, byte[] newUserGender, byte[] newUserClass, byte[] newUserLevel)
+    {
+        roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
+
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
+        {
+            roomUserData[i] = new RoomUserData(newUserName[i], newUserGender[i], newUserClass[i], newUserLevel[i]);
+        }
+    }
+
+    public RoomUserList(Room room)
+    {
+        roomUserData = room.RoomUserData; 
     }
 }

@@ -142,7 +142,8 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.RequestCharacterList, RequestCharacterList);
         m_notifier.Add((int)ClientPacketId.CreateCharacter, CreateCharacter);
         m_notifier.Add((int)ClientPacketId.DeleteCharacter, DeleteCharacter);
-        m_notifier.Add((int)ClientPacketId.SelectCharacter, SelectCharacter);
+        m_notifier.Add((int)ClientPacketId.RequestCharacterStatus, RequestCharacterStatus);
+        m_notifier.Add((int)ClientPacketId.RequestRoomList, RequestRoomList);
         m_notifier.Add((int)ClientPacketId.CreateRoom, CreateRoom);
         m_notifier.Add((int)ClientPacketId.EnterRoom, EnterRoom);
         m_notifier.Add((int)ClientPacketId.ExitRoom, ExitRoom);
@@ -249,8 +250,8 @@ public class DataHandler
 
         Result result = Result.Fail;
 
-        //try
-        //{
+        try
+        {
             if (database.AccountData.Contains(accountData.Id))
             {
                 if (((AccountData)database.AccountData[accountData.Id]).Password == accountData.Password)
@@ -289,12 +290,12 @@ public class DataHandler
                 Console.WriteLine("존재하지 않는 아이디입니다.");
                 result = Result.Fail;
             }
-        //}
-        //catch
-        //{
-        //    Console.WriteLine("DataHandler::Login.ContainsValue 에러");
-        //    result = Result.Fail;
-        //}
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::Login.ContainsValue 에러");
+            result = Result.Fail;
+        }
 
         ResultData resultData = new ResultData((byte)result);
         ResultPacket resultDataPacket = new ResultPacket(resultData);
@@ -388,10 +389,10 @@ public class DataHandler
             {
                 userState.Remove(id);
             }
-            else
+
+            if (database.UserData.Contains(id))
             {
-                Console.WriteLine("로그인되어있지 않은 캐릭터입니다. : " + id);
-                result = Result.Fail;
+                database.UserData.Remove(id);
             }
         }
         catch
@@ -420,13 +421,19 @@ public class DataHandler
 
         try
         {
-            Console.WriteLine("게임 종료 : " + packet.client.RemoteEndPoint.ToString());
-            id = loginUser[packet.client];
+            if (!loginUser.ContainsKey(packet.client))
+            {
+                Console.WriteLine("로그인하지 않았습니다.");
+                return;
+            }
+            else
+            {
+                id = loginUser[packet.client];
+            }            
         }
         catch
         {
             Console.WriteLine("DataHandler::GameClose.socket 에러");
-            Console.WriteLine("로그인하지 않았습니다.");
         }
         
         try
@@ -460,7 +467,7 @@ public class DataHandler
         catch
         {
             Console.WriteLine("DataHandler::GameClose.ContainsKey - database 에러");
-        }
+        }       
 
         try
         {
@@ -480,7 +487,7 @@ public class DataHandler
         string id = loginUser[packet.client];
         UserData userData = database.GetUserData(id);
 
-        CharacterList characterList = new CharacterList(database.GetUserData(id).HeroData);
+        CharacterList characterList = new CharacterList(userData.HeroData);
         CharacterListPacket characterListPacket = new CharacterListPacket(characterList);
         characterListPacket.SetPacketId((int)ServerPacketId.CharacterList);
 
@@ -500,6 +507,10 @@ public class DataHandler
 
         CreateCharacterPacket createCharacterPacket = new CreateCharacterPacket(packet.msg);
         CreateCharacterData createCharacterData = createCharacterPacket.GetData();
+
+        Console.WriteLine("이름 : " + createCharacterData.HName);
+        Console.WriteLine("직업 : " + createCharacterData.HClass);
+        Console.WriteLine("성별 : " + createCharacterData.Gender);
 
         string id = loginUser[packet.client];
         UserData userData = database.GetUserData(id);
@@ -579,59 +590,17 @@ public class DataHandler
             sendMsgs.Enqueue(packet);
         }
     }
-    
-    //캐릭터 선택 후 게임 시작
-    public void SelectCharacter(DataPacket packet)
-    {
-        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 선택");
-
-        SelectCharacterPacket selectCharacterPacket = new SelectCharacterPacket(packet.msg);
-        SelectCharacterData selectCharacterData = selectCharacterPacket.GetData();
-
-        string id = "";
-
-        try
-        {
-            id = loginUser[packet.client];
-        }
-        catch
-        {
-            Console.WriteLine("Datahandler::SelectCharacter.loginUser 에러");
-        } 
-
-        Result result = Result.Fail;
-
-        try
-        {
-            userState[id] = new UserState(id, selectCharacterData.Index);
-            result = Result.Success;
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::SelectCharacter.AddUserData 에러");
-            result = Result.Fail;
-        }
-
-        ResultData resultData = new ResultData((byte)result);
-        ResultPacket resultDataPacket = new ResultPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.SelectCharacterResult);
-
-        byte[] msg = CreatePacket(resultDataPacket);
-        packet = new DataPacket(msg, packet.client);
-
-        lock (sendLock)
-        {
-            sendMsgs.Enqueue(packet);
-        }
-    }
 
     //캐릭터 정보 요청
     public void RequestCharacterStatus(DataPacket packet)
     {
         Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 정보 요청");
 
+        CharacterIndexPacket characterIndexPacket = new CharacterIndexPacket(packet.msg);
+        CharacterIndexData characterIndexData = characterIndexPacket.GetData();
+        
         string id = loginUser[packet.client];
-        int character = userState[id].characterId;
+        int character = characterIndexData.Index;
 
         HeroData heroData = database.GetHeroData(id, character);
         CharacterStatusData characterStatusData = heroData.GetCharacterStatusData();

@@ -39,7 +39,7 @@
     <Compile Include="Database\UserData.cs" />
     <Compile Include="Paket\Client2Server\EquipUpgradePacket.cs" />
     <Compile Include="Paket\Client2Server\ExitRoomPacket.cs" />
-    <Compile Include="Paket\Client2Server\SelectCharacterPacket.cs" />
+    <Compile Include="Paket\Client2Server\CharacterIndexPacket.cs" />
     <Compile Include="Paket\Client2Server\DeletecharacterPacket.cs" />
     <Compile Include="Paket\Client2Server\CreateCharacterPacket.cs" />
     <Compile Include="Paket\Client2Server\CreateRoomPacket.cs" />

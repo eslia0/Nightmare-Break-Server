@@ -10,17 +10,18 @@ public class RoomListPacket : Packet<RoomListData>
 
             for (int i = 0; i < RoomManager.maxRoomNum; i++)
             {
-                ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.RoomName[i]).Length);
-                ret &= Serialize(data.RoomName[i]);
-                ret &= Serialize(data.DungeonId[i]);
-                ret &= Serialize(data.DungeonLevel[i]);
+                ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.Rooms[i].RoomName).Length);
+                ret &= Serialize(data.Rooms[i].RoomName);
+                ret &= Serialize(data.Rooms[i].DungeonId);
+                ret &= Serialize(data.Rooms[i].DungeonLevel);
 
                 for (int j = 0; j < RoomManager.maxPlayerNum; j++)
                 {
-                    ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.UserName[i, j]).Length);
-                    ret &= Serialize(data.UserName[i, j]);
-                    ret &= Serialize(data.UserClass[i, j]);
-                    ret &= Serialize(data.UserLevel[i, j]);
+                    ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.Rooms[i].RoomUserData[j].UserName).Length);
+                    ret &= Serialize(data.Rooms[i].RoomUserData[j].UserName);
+                    ret &= Serialize((byte)data.Rooms[i].RoomUserData[j].UserGender);
+                    ret &= Serialize((byte)data.Rooms[i].RoomUserData[j].UserClass);
+                    ret &= Serialize((byte)data.Rooms[i].RoomUserData[j].UserLevel);
                 }
             }          
 
@@ -36,31 +37,45 @@ public class RoomListPacket : Packet<RoomListData>
             }
 
             bool ret = true;
-            byte[] roomNameLength = new byte[RoomManager.maxRoomNum];
-            string[] roomName = new string[RoomManager.maxRoomNum];
-            byte[] dungeonId = new byte[RoomManager.maxRoomNum];
-            byte[] dungeonLevel = new byte[RoomManager.maxRoomNum];
-            byte[,] userNameLength = new byte[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-            string[,] userName = new string[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-            byte[,] userClass = new byte[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-            byte[,] userLevel = new byte[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
+
+            byte roomNameLength = 0;
+            string roomName;
+            byte dungeonId = 0;
+            byte dungeonLevel = 0;
+            byte userNameLength = 0;
+            string userName;
+            byte userGender = 0;
+            byte userClass = 0;
+            byte userLevel = 0;
+
+            RoomUserData[] roomUserData;
+            Room[] rooms;
+
+            roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
+            rooms = new Room[RoomManager.maxRoomNum];
 
             for (int i = 0; i < RoomManager.maxRoomNum; i++)
             {
-                ret &= Deserialize(ref roomNameLength[i]);
-                ret &= Deserialize(out roomName[i], roomNameLength[i]);
-                ret &= Deserialize(ref dungeonId[i]);
-                ret &= Deserialize(ref dungeonLevel[i]);
+                ret &= Deserialize(ref roomNameLength);
+                ret &= Deserialize(out roomName, roomNameLength);
+                ret &= Deserialize(ref dungeonId);
+                ret &= Deserialize(ref dungeonLevel);
 
                 for (int j = 0; j < RoomManager.maxPlayerNum; j++)
                 {
-                    ret &= Deserialize(ref userNameLength[i, j]);
-                    ret &= Deserialize(out userName[i, j], userNameLength[i, j]);
-                    ret &= Deserialize(ref userClass[i, j]);
-                    ret &= Deserialize(ref userLevel[i, j]);
+                    ret &= Deserialize(ref userNameLength);
+                    ret &= Deserialize(out userName, userNameLength);
+                    ret &= Deserialize(ref userGender);
+                    ret &= Deserialize(ref userClass);
+                    ret &= Deserialize(ref userLevel);
+
+                    roomUserData[i] = new RoomUserData(userName, userGender, userClass, userLevel);
                 }
+
+                rooms[i] = new Room(roomName, dungeonId, dungeonLevel, roomUserData);
             }
-            element = new RoomListData(roomName, dungeonId, dungeonLevel, userName, userClass, userLevel);
+
+            element = new RoomListData(rooms);
 
             return ret;
         }
@@ -89,60 +104,22 @@ public class RoomListPacket : Packet<RoomListData>
 
 public class RoomListData
 {
-    byte[] roomNameLength;
-    string[] roomName;
-    byte[] dungeonId;
-    byte[] dungeonLevel;
-    byte[,] userNameLength;
-    string[,] userName;
-    byte[,] userClass;
-    byte[,] userLevel;
-
-    public byte[] RoomNameLength { get { return roomNameLength; } }
-    public string[] RoomName { get { return roomName; } }
-    public byte[] DungeonId { get { return dungeonId; } }
-    public byte[] DungeonLevel { get { return dungeonLevel; } }
-    public byte[,] UserNameLength { get { return userNameLength; } }
-    public string[,] UserName { get { return userName; } }
-    public byte[,] UserClass { get { return userClass; } }
-    public byte[,] UserLevel { get { return userLevel; } }
+    Room[] rooms;
+    
+    public Room[] Rooms { get { return rooms; } }
 
     public RoomListData()
     {
-        roomNameLength = new byte[RoomManager.maxRoomNum];
-        roomName = new string[RoomManager.maxRoomNum];
-        dungeonId = new byte[RoomManager.maxRoomNum];
-        dungeonLevel = new byte[RoomManager.maxRoomNum];
-        userNameLength = new byte[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-        userName = new string[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-        userClass = new byte[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-        userLevel = new byte[RoomManager.maxRoomNum, RoomManager.maxPlayerNum];
-    }
+        rooms = new Room[RoomManager.maxRoomNum];
 
-    public RoomListData(string[] newRoomName, byte[] newDungeonId, byte[] newDungeonLevel, string[,] newUserName, byte[,] newUserClass, byte[,] newUserLevel)
-    {
-        roomName = newRoomName;
-        dungeonId = newDungeonId;
-        dungeonLevel = newDungeonLevel;
-        userName = newUserName;
-        userClass = newUserClass;
-        userLevel = newUserLevel;
-    }
-
-    public RoomListData(Room[] rooms)
-    {
         for (int i = 0; i < RoomManager.maxRoomNum; i++)
         {
-            roomName[i] = rooms[i].RoomName;
-            dungeonId[i] = (byte)rooms[i].DungeonId;
-            dungeonLevel[i] = (byte)rooms[i].DungeonLevel;
-
-            for (int j = 0; j < RoomManager.maxPlayerNum; j++)
-            {
-                userName[i, j] = rooms[i].UserName[j];
-                userClass[i, j] = (byte)rooms[i].UserClass[j];
-                userLevel[i, j] = (byte)rooms[i].UserLevel[j];
-            }
+            rooms[i] = new Room();
         }
+    }
+
+    public RoomListData(Room[] newRooms)
+    {
+        rooms = newRooms;
     }
 }

@@ -88,23 +88,17 @@ public class Room
     string roomName;
     int dungeonId;
     int dungeonLevel;
-    Socket[] socket;
     int playerNum;
-    int[] userClass;
-    UserData.Gender[] userGender;
-    string[] userName;
-    int[] userLevel;
+    RoomUserData[] roomUserData;
+    Socket[] socket;
     bool[] ready;
 
-    public Socket[] Socket { get { return socket; } }
     public int PlayerNum { get { return playerNum; } }
     public string RoomName { get { return roomName; } }
     public int DungeonId { get { return dungeonId; } }
     public int DungeonLevel { get { return dungeonLevel; } }
-    public int[] UserClass { get { return userClass; } }
-    public UserData.Gender[] UserGender { get { return userGender; } }
-    public string[] UserName { get { return userName; } }
-    public int[] UserLevel { get { return userLevel; } }
+    public RoomUserData[] RoomUserData { get { return roomUserData; } }
+    public Socket[] Socket { get { return socket; } }
     public bool[] Ready { get { return ready; } }
 
     public Room()
@@ -113,12 +107,14 @@ public class Room
         playerNum = 0;
         dungeonId = 0;
         dungeonLevel = 0;
-        socket = new Socket[RoomManager.maxPlayerNum];
-        userClass = new int[RoomManager.maxPlayerNum];
-        userGender = new UserData.Gender[RoomManager.maxPlayerNum];
-        userName = new string[RoomManager.maxPlayerNum];
-        userLevel = new int[RoomManager.maxPlayerNum];
+        roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
+        socket = new Socket[RoomManager.maxPlayerNum];        
         ready = new bool[RoomManager.maxPlayerNum];
+
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
+        {
+            roomUserData[i] = new RoomUserData();
+        }
     }
 
     public Room(string newName, int newDungeonId, int newDungeonLevel)
@@ -127,19 +123,31 @@ public class Room
         playerNum = 0;
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
+        roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
         socket = new Socket[RoomManager.maxPlayerNum];
-        userClass = new int[RoomManager.maxPlayerNum];
-        userGender = new UserData.Gender[RoomManager.maxPlayerNum];
-        userName = new string[RoomManager.maxPlayerNum];
-        userLevel = new int[RoomManager.maxPlayerNum];
         ready = new bool[RoomManager.maxPlayerNum];
+
+        for (int i = 0; i < RoomManager.maxPlayerNum; i++)
+        {
+            roomUserData[i] = new RoomUserData();
+        }
+    }
+
+    public Room(string newName, byte newDungeonId, byte newDungeonLevel, RoomUserData[] newRoomUserData)
+    {
+        roomName = newName;
+        playerNum = 0;
+        dungeonId = newDungeonId;
+        dungeonLevel = newDungeonLevel;
+        ready = new bool[RoomManager.maxPlayerNum];
+        roomUserData = newRoomUserData;
     }
 
     public int FindEmptySlot()
     {
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
-            if(socket[i] == null)
+            if(roomUserData[i].UserLevel == 0)
             {
                 return i;
             }
@@ -171,8 +179,9 @@ public class Room
             return -1;
         }
 
-        userClass[index] = newData.HClass;
-        userName[index] = newData.Name;
+        roomUserData[index] = new RoomUserData(newData.Name, newData.Gender, newData.Level);
+        .userClass = newData.HClass;
+        roomUserData[index].userName = newData.Name;
         userLevel[index] = newData.Level;
         socket[index] = newPlayer;
         playerNum++;
@@ -213,5 +222,34 @@ public class Room
         string tempString = userName[origSlot];
         userName[origSlot] = userName[DestiSlot];
         userName[DestiSlot] = tempString;
+    }
+}
+
+public class RoomUserData
+{
+    string userName;
+    int userGender;
+    int userClass;
+    int userLevel;
+
+    public string UserName { get { return userName; } }
+    public int UserGender { get { return userGender; } }
+    public int UserClass { get { return userClass; } }
+    public int UserLevel { get { return userLevel; } }
+
+    public RoomUserData()
+    {
+        userName = "";
+        userGender = 0;
+        userClass = 0;
+        userLevel = 0;
+    }
+
+    public RoomUserData(string newUserName, int newUserGender, int newUserClass, int newUserLevel)
+    {
+        userName = newUserName;
+        userGender = newUserGender;
+        userClass = newUserClass;
+        userLevel = newUserLevel;
     }
 }

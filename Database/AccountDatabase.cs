@@ -176,6 +176,11 @@ public class AccountDatabase
 
     public UserData GetUserData(string id)
     {
+        if (userData.Contains(id))
+        {
+            return (UserData)userData[id];
+        }
+
         fs.Close();
 
         //파일이 있으면 가져오고 없으면 새로 만듬
@@ -183,10 +188,9 @@ public class AccountDatabase
         {
             fs = new FileStream(id + ".data", FileMode.Open);
         }
-        catch
+        catch(Exception e)
         {
-            Console.WriteLine("Database::AddUserData.FileOpenOrCreate 에러");
-            return null;
+            Console.WriteLine("Database::GetUserData.FileOpenOrCreate 에러" + e.Message);
         }
 
         UserData newUserData = null;
@@ -197,7 +201,7 @@ public class AccountDatabase
         }
         else
         {
-            Console.WriteLine("Database::AddUserData.Deserialize 에러");
+            Console.WriteLine("Database::GetUserData.Deserialize 에러");
         }
 
         return newUserData;
@@ -209,7 +213,7 @@ public class AccountDatabase
         try
         {
             UserData newUserData = GetUserData(id);
-            UserData.Add(id, newUserData);
+            userData.Add(id, newUserData);
 
             return true;
         }
