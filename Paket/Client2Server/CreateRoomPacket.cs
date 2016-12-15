@@ -69,15 +69,15 @@ public class CreateRoomData
 
     public CreateRoomData()
     {
-        roomName = "";
         dungeonId = 0;
         dungeonLevel = 0;
+        roomName = "";
     }
 
     public CreateRoomData(int newId, int newLevel, string newRoomName)
     {
         dungeonId = (byte)newId;
         dungeonLevel = (byte)newLevel;
-        roomName = "";
+        roomName = newRoomName;
     }
 }

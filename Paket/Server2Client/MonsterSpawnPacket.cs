@@ -1,23 +1,26 @@
-﻿public class MonsterSpawnListPacket : Packet<MonsterSpawnList>
+﻿public class MonsterSpawnListPacket : Packet<DungeonData>
 {
     public class MonsterSpawnListSerializer : Serializer
     {
-        public bool Serialize(MonsterSpawnList data)
+        public bool Serialize(DungeonData data)
         {
             bool ret = true;
 
-            ret &= Serialize(data.MonsterKind);
+            ret &= Serialize(data.StageNum);
 
-            for (int i = 0; i < data.MonsterKind; i++)
+            for (int i = 0; i < data.StageNum; i++)
             {
-                ret &= Serialize(data.MonsterSpawnData[i].MonsterId);
-                ret &= Serialize(data.MonsterSpawnData[i].MonsterNum);
+                for (int j = 0; j < data.StageData[i].MonsterSpawnData.Count; j++)
+                {
+                    ret &= Serialize(data.StageData[i].MonsterSpawnData[j].MonsterId);
+                    ret &= Serialize(data.StageData[i].MonsterSpawnData[j].MonsterNum);
+                }
             }
 
             return ret;
         }
 
-        public bool Deserialize(ref MonsterSpawnList element)
+        public bool Deserialize(ref DungeonData element)
         {
             if (GetDataSize() == 0)
             {
@@ -26,33 +29,33 @@
             }
 
             bool ret = true;
-            byte monsterKind = 0;
+            byte stageNum = 0;
             byte monsterNum = 0;
             byte monsterId = 0;
 
-            ret &= Deserialize(ref monsterKind);
-            element = new MonsterSpawnList(monsterKind);
+            ret &= Deserialize(ref stageNum);
 
-            for (int i = 0; i < monsterKind; i++)
+            for (int i = 0; i < stageNum; i++)
             {
                 ret &= Deserialize(ref monsterId);
                 ret &= Deserialize(ref monsterNum);
 
-                element.MonsterSpawnData[i] = new MonsterSpawnData(monsterId, monsterNum);
+                element.StageData[i] = new Stage(i);
+                element.StageData[i].AddMonster(monsterId, monsterNum);
             }
 
             return ret;
         }
     }
 
-    public MonsterSpawnListPacket(MonsterSpawnList data) // 데이터로 초기화(송신용)
+    public MonsterSpawnListPacket(DungeonData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
     public MonsterSpawnListPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
-        m_data = new MonsterSpawnList();
+        m_data = new DungeonData();
         MonsterSpawnListSerializer serializer = new MonsterSpawnListSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
@@ -63,47 +66,6 @@
         MonsterSpawnListSerializer serializer = new MonsterSpawnListSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
-    }
-}
-
-public class MonsterSpawnList
-{
-    byte monsterKind;
-    MonsterSpawnData[] monsterSpawnData;
-
-    public int MonsterNum
-    {
-        get
-        {
-            int sum = 0;
-
-            for (int i =0; i<monsterKind;i++)
-            {
-                sum += monsterSpawnData[i].MonsterNum;
-            }            
-
-            return sum;
-        }
-    }
-    public byte MonsterKind { get { return monsterKind; } }
-    public MonsterSpawnData[] MonsterSpawnData { get { return monsterSpawnData; } }
-
-    public MonsterSpawnList()
-    {
-        monsterKind = 0;
-        monsterSpawnData = new MonsterSpawnData[monsterKind];
-    }
-
-    public MonsterSpawnList(byte newMonsterKind)
-    {
-        monsterKind = newMonsterKind;
-        monsterSpawnData = new MonsterSpawnData[monsterKind];
-    }
-
-    public MonsterSpawnList(byte newMonsterKind, MonsterSpawnData[] newMonsterSpawnData)
-    {
-        monsterKind = newMonsterKind;
-        monsterSpawnData = newMonsterSpawnData;
     }
 }
 

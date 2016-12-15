@@ -7,7 +7,8 @@ public enum MonsterId
     Duck,
     Frog,
     Rabbit,
-    Bear
+    Bear,
+    BlackBear,
 }
 
 public class MonsterDatabase
@@ -79,9 +80,9 @@ public class MonsterDatabase
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(5, 105, 12, 1400, 7));
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(6, 130, 16, 2000, 7));
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(7, 160, 24, 2800, 8));
-        GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(8, 200, 36, 4000, 8));
-        GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(9, 250, 48, 6200, 9));
-        GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(10, 330, 9, 550, 10));
+        GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(8, 200, 36, 3800, 8));
+        GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(9, 250, 48, 5000, 9));
+        GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(10, 330, 9, 6400, 10));
     }
 
     public bool AddBaseData(MonsterBaseData newMonsterData)

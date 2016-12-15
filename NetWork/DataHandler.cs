@@ -42,10 +42,13 @@ public class DataHandler
     public Dictionary<string, UserState> userState;
 
     AccountDatabase database;
+    DungeonDatabase dungeonDatabase;
     RoomManager roomManager;
 
     object receiveLock;
     object sendLock;
+
+    public RoomManager RoomManager {get { return roomManager; } }
 
     RecvNotifier recvNotifier;
     public delegate void RecvNotifier(DataPacket packet);
@@ -64,6 +67,8 @@ public class DataHandler
 
         database = AccountDatabase.Instance;
         database.InitailizeDatabase();
+        dungeonDatabase = DungeonDatabase.Instance;
+        dungeonDatabase.InitializeDungeonDatabase();
         roomManager = new RoomManager();
 
         Thread handleThread = new Thread(new ThreadStart(DataHandle));
@@ -147,8 +152,10 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.CreateRoom, CreateRoom);
         m_notifier.Add((int)ClientPacketId.EnterRoom, EnterRoom);
         m_notifier.Add((int)ClientPacketId.ExitRoom, ExitRoom);
-        m_notifier.Add((int)ClientPacketId.RoomUserData, RoomUserData);
+        m_notifier.Add((int)ClientPacketId.RequestRoomUserData, RequestRoomUserData);
+        m_notifier.Add((int)ClientPacketId.SwapPlayer, SwapPlayer);
         m_notifier.Add((int)ClientPacketId.StartGame, StartGame);
+        m_notifier.Add((int)ClientPacketId.RequestMonsterSpawnList, RequestMonsterSpawnList);
         m_notifier.Add((int)ClientPacketId.RequestUdpConnection, RequestUDPConnection);
         m_notifier.Add((int)ClientPacketId.UdpConnectComplete, UDPConnectComplete);
     }
@@ -291,9 +298,9 @@ public class DataHandler
                 result = Result.Fail;
             }
         }
-        catch
+        catch(Exception e)
         {
-            Console.WriteLine("DataHandler::Login.ContainsValue 에러");
+            Console.WriteLine("DataHandler::Login.ContainsValue 에러" + e.Message);
             result = Result.Fail;
         }
 
@@ -591,6 +598,37 @@ public class DataHandler
         }
     }
 
+    //캐릭터 선택
+    public void SelectCharacter(DataPacket packet)
+    {
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 선택");
+
+        CharacterIndexPacket characterIndexPacket = new CharacterIndexPacket(packet.msg);
+        CharacterIndexData characterIndexData = characterIndexPacket.GetData();
+
+        string id = "";
+
+        try
+        {
+            id = loginUser[packet.client];
+        }
+        catch
+        {
+            Console.WriteLine("Datahandler::SelectCharacter.loginUser 에러");
+        }
+
+        UserData userData = database.GetUserData(id);
+
+        try
+        {
+            userState[id].characterId = characterIndexData.Index;
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::SelectCharacter.userState 에러");
+        }
+    }
+
     //캐릭터 정보 요청
     public void RequestCharacterStatus(DataPacket packet)
     {
@@ -601,6 +639,8 @@ public class DataHandler
         
         string id = loginUser[packet.client];
         int character = characterIndexData.Index;
+
+        userState[id].characterId = character;
 
         HeroData heroData = database.GetHeroData(id, character);
         CharacterStatusData characterStatusData = heroData.GetCharacterStatusData();
@@ -692,14 +732,15 @@ public class DataHandler
 
         Console.WriteLine("Id : " + id);
         Console.WriteLine("characterId : " + characterId);
+        Console.WriteLine("방 제목 : " + createRoomData.RoomName);
 
         int result = roomManager.CreateRoom(packet.client, database.GetHeroData(id, characterId), createRoomData);
 
         Console.WriteLine("방 생성 번호 : " + result);
 
-        RoomResultData resultData = new RoomResultData(result + 1);
-        RoomResultPacket resultDataPacket = new RoomResultPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.CreateRoomResult);
+        RoomNumberData resultData = new RoomNumberData(result);
+        RoomNumberPacket resultDataPacket = new RoomNumberPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.CreateRoomNumber);
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
@@ -756,9 +797,9 @@ public class DataHandler
             result = -1;
         }
 
-        RoomResultData resultData = new RoomResultData(result + 1);
-        RoomResultPacket resultDataPacket = new RoomResultPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.EnterRoomResult);
+        RoomNumberData resultData = new RoomNumberData(result + 1);
+        RoomNumberPacket resultDataPacket = new RoomNumberPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.EnterRoomNumber);
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
@@ -770,23 +811,38 @@ public class DataHandler
     }
 
     //방 유저 정보 요청
-    public void RoomUserData(DataPacket packet)
+    public void RequestRoomUserData(DataPacket packet)
     {
         Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 유저 정보 요청");
 
         string id = loginUser[packet.client];
+        
+        RoomData roomData = new RoomData(roomManager.Room[userState[id].state]);
+        RoomDataPacket roomDataPacket = new RoomDataPacket(roomData);
+        roomDataPacket.SetPacketId((int)ServerPacketId.RoomData);
 
-        RoomUserData roomUserData = new RoomUserData(roomManager.Room[userState[id].state]);
-        RoomUserPacket roomUserPacket = new RoomUserPacket(roomUserData);
-        roomUserPacket.SetPacketId((int)ServerPacketId.RoomUserData);
-
-        byte[] msg = CreatePacket(roomUserPacket);
+        byte[] msg = CreatePacket(roomDataPacket);
         packet = new DataPacket(msg, packet.client);
         
         lock (sendLock)
         {
             sendMsgs.Enqueue(packet);
         }
+    }
+
+    //자리 옮기기
+    public void SwapPlayer(DataPacket packet)
+    {
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 자리 옮기기 요청");
+
+        ChangeSlotPacket changeSlotPacket = new ChangeSlotPacket(packet.msg);
+        ChangeSlotData changeSlotData = changeSlotPacket.GetData();
+
+        string id = loginUser[packet.client];
+        int roomIndex = userState[id].state;
+        int myIndex = roomManager.Room[roomIndex].FindPlayerWithSocket(packet.client);
+
+        roomManager.Room[roomIndex].SwapPlayer(myIndex, changeSlotData.Index);
     }
 
     //방 퇴장
@@ -815,7 +871,7 @@ public class DataHandler
 
         ResultData resultData = new ResultData((byte)result);
         ResultPacket resultDataPacket = new ResultPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.ExitRoomResult);
+        resultDataPacket.SetPacketId((int)ServerPacketId.ExitRoomNumber);
 
         byte[] msg = CreatePacket(resultDataPacket);
         packet = new DataPacket(msg, packet.client);
@@ -896,11 +952,23 @@ public class DataHandler
     }
 
     //몬스터 소환 리스트 요청
-    public void RequestSpawnMonsterList(DataPacket packet)
+    public void RequestMonsterSpawnList(DataPacket packet)
     {
         Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "몬스터 소환 리스트 요청");
 
+        int dungeonId = packet.msg[0];
+        DungeonData dungeonData = dungeonDatabase.GetDungeonData(dungeonId);
+        MonsterSpawnListPacket monsterSpawnListPacket = new MonsterSpawnListPacket(dungeonData);
+        monsterSpawnListPacket.SetPacketId((int)ServerPacketId.MonsterSpawnList);
 
+        byte[] msg = CreatePacket(monsterSpawnListPacket);
+
+        packet = new DataPacket(msg, packet.client);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
     }
 
     //UDP 연결 완료

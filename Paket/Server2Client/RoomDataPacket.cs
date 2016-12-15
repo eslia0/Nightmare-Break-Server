@@ -1,10 +1,10 @@
 ﻿using System.Text;
 
-public class RoomUserListPacket : Packet<RoomUserList>
+public class RoomDataPacket : Packet<RoomData>
 {
-    public class RoomUserListSerializer : Serializer
+    public class RoomDataSerializer : Serializer
     {
-        public bool Serialize(RoomUserList data)
+        public bool Serialize(RoomData data)
         {
             bool ret = true;
 
@@ -20,7 +20,7 @@ public class RoomUserListPacket : Packet<RoomUserList>
             return ret;
         }
 
-        public bool Deserialize(ref RoomUserList element)
+        public bool Deserialize(ref RoomData element)
         {
             if (GetDataSize() == 0)
             {
@@ -44,40 +44,40 @@ public class RoomUserListPacket : Packet<RoomUserList>
                 ret &= Deserialize(ref userLevel[i]);
             }
 
-            element = new RoomUserList(userName, userGender, userClass, userLevel);
+            element = new RoomData(userName, userGender, userClass, userLevel);
 
             return ret;
         }
     }
 
-    public RoomUserListPacket(RoomUserList data) // 데이터로 초기화(송신용)
+    public RoomDataPacket(RoomData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
-    public RoomUserListPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
+    public RoomDataPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
-        m_data = new RoomUserList();
-        RoomUserListSerializer serializer = new RoomUserListSerializer();
+        m_data = new RoomData();
+        RoomDataSerializer serializer = new RoomDataSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
     }
 
     public override byte[] GetPacketData() // 바이트형 패킷(송신용)
     {
-        RoomUserListSerializer serializer = new RoomUserListSerializer();
+        RoomDataSerializer serializer = new RoomDataSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
     }
 }
 
-public class RoomUserList
+public class RoomData
 {
     RoomUserData[] roomUserData;
 
     public RoomUserData[] RoomUserData { get { return roomUserData; } }
 
-    public RoomUserList()
+    public RoomData()
     {
         roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
 
@@ -87,7 +87,7 @@ public class RoomUserList
         }
     }
 
-    public RoomUserList(string[] newUserName, byte[] newUserGender, byte[] newUserClass, byte[] newUserLevel)
+    public RoomData(string[] newUserName, byte[] newUserGender, byte[] newUserClass, byte[] newUserLevel)
     {
         roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
 
@@ -97,7 +97,7 @@ public class RoomUserList
         }
     }
 
-    public RoomUserList(Room room)
+    public RoomData(Room room)
     {
         roomUserData = room.RoomUserData; 
     }

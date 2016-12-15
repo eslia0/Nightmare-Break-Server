@@ -30,34 +30,35 @@ public class AccountDatabase
     Hashtable accountData;
     Hashtable userData;
     List<string> heroNameData;
-    FileStream fs;
     BinaryFormatter bin;
 
     public Hashtable AccountData
     {
         get
         {
-            if (heroNameData == null)
+            if (accountData == null)
             {
-                fs.Close();
-
-                fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
+                FileStream fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
 
                 try
                 {
                     if (fs.Length > 0)
                     {
-                        return (Hashtable)bin.Deserialize(fs);
+                        accountData = (Hashtable)bin.Deserialize(fs);
+                        fs.Close();
+                        return accountData;
                     }
                     else
                     {
+                        fs.Close();
                         return new Hashtable();
                     }
                 }
-                catch
+                catch(Exception e)
                 {
-                    Console.WriteLine("Database::GetData 에러");
-                    return null;
+                    Console.WriteLine("Database::AccountData.GetData 에러 " + e.Message);
+                    fs.Close();
+                    return new Hashtable();
                 }
             }
             else
@@ -73,24 +74,27 @@ public class AccountDatabase
         {
             if (heroNameData == null)
             {
-                fs.Close();
-
-                fs = new FileStream(heroNameDatafile, FileMode.OpenOrCreate);
+                FileStream fs = new FileStream(heroNameDatafile, FileMode.OpenOrCreate);
 
                 try
                 {
                     if (fs.Length > 0)
                     {
-                        return (List<string>)bin.Deserialize(fs);
+                        heroNameData = (List<string>)bin.Deserialize(fs);
+                        fs.Close();
+                        return heroNameData;
                     }
                     else
                     {
+                        fs.Close();
                         return new List<string>();
                     }
                 }
                 catch
                 {
-                    Console.WriteLine("Database::GetData 에러");
+                    Console.WriteLine("Database::HeroNameData.GetData 에러");
+
+                    fs.Close();
                     return null;
                 }
             }
@@ -105,7 +109,6 @@ public class AccountDatabase
     public void InitailizeDatabase()
     {
         bin = new BinaryFormatter();
-        fs = new FileStream(accountDataFile, FileMode.OpenOrCreate);
 
         accountData = AccountData;
         heroNameData = HeroNameData;
@@ -181,18 +184,7 @@ public class AccountDatabase
             return (UserData)userData[id];
         }
 
-        fs.Close();
-
-        //파일이 있으면 가져오고 없으면 새로 만듬
-        try
-        {
-            fs = new FileStream(id + ".data", FileMode.Open);
-        }
-        catch(Exception e)
-        {
-            Console.WriteLine("Database::GetUserData.FileOpenOrCreate 에러" + e.Message);
-        }
-
+        FileStream fs = new FileStream(id + ".data", FileMode.Open);
         UserData newUserData = null;
 
         if (fs.Length > 0)
@@ -204,6 +196,7 @@ public class AccountDatabase
             Console.WriteLine("Database::GetUserData.Deserialize 에러");
         }
 
+        fs.Close();
         return newUserData;
     }
 
@@ -249,17 +242,7 @@ public class AccountDatabase
     //파일 저장
     public bool FileSave(string path, object data)
     {
-        try
-        {   //FileMode.Create 로 덮어쓰기
-            fs.Close();
-            fs = new FileStream(path, FileMode.Create);
-            Console.WriteLine("저장 경로 : " + path);
-        }
-        catch
-        {
-            Console.WriteLine("Database::FileSave.FileMode.Create 에러");
-            return false;
-        }
+        FileStream fs = new FileStream(path, FileMode.Create);
 
         try
         {
@@ -268,9 +251,11 @@ public class AccountDatabase
         catch (Exception e)
         {
             Console.WriteLine("Database::FileSaveSerialize 에러" + e.Message);
+            fs.Close();
             return false;
         }
 
+        fs.Close();
         return true;
     }
 }

@@ -37,6 +37,7 @@
     <Compile Include="Database\DungeonDatabase.cs" />
     <Compile Include="Database\MonsterDatabase.cs" />
     <Compile Include="Database\UserData.cs" />
+    <Compile Include="Paket\Client2Server\ChangeSlotPacket.cs" />
     <Compile Include="Paket\Client2Server\EquipUpgradePacket.cs" />
     <Compile Include="Paket\Client2Server\ExitRoomPacket.cs" />
     <Compile Include="Paket\Client2Server\CharacterIndexPacket.cs" />
@@ -50,8 +51,8 @@
     <Compile Include="Paket\Server2Client\CharacterStatusPacket.cs" />
     <Compile Include="Paket\Server2Client\MonsterStatusPacket.cs" />
     <Compile Include="Paket\Server2Client\MonsterSpawnPacket.cs" />
-    <Compile Include="Paket\Server2Client\RoomResultPacket.cs" />
-    <Compile Include="Paket\Server2Client\RoomUserPacket.cs" />
+    <Compile Include="Paket\Server2Client\RoomNumberPacket.cs" />
+    <Compile Include="Paket\Server2Client\RoomDataPacket.cs" />
     <Compile Include="Paket\Server2Client\UDPConnectionPacket.cs" />
     <Compile Include="Paket\Server2Client\RoomListPacket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -62,7 +63,7 @@
     <Compile Include="Serializer\Serializer.cs" />
     <Compile Include="Serializer\HeaderSerializer.cs" />
     <Compile Include="Paket\PacketId.cs" />
-    <Compile Include="Paket\Client2Server\AccountPaket.cs" />
+    <Compile Include="Paket\Client2Server\AccountPacket.cs" />
     <Compile Include="NetWork\DataReceiver.cs" />
     <Compile Include="Paket\Packet.cs" />
   </ItemGroup>

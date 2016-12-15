@@ -23,6 +23,15 @@ public class UnityServer
         while (true)
         {
             Thread.Sleep(1000);
+            if(System.Console.KeyAvailable)
+            {
+                string key = System.Console.ReadLine();
+
+                if(key == "p" || key == "P")
+                {
+                    dataHandler.RoomManager.PrintRoomList();
+                }
+            }
         }
     }
 }

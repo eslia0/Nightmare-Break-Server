@@ -81,6 +81,16 @@ public class RoomManager
 
         return roomListPacket;
     }
+
+    public void PrintRoomList()
+    {
+        for (int i = 0; i < maxRoomNum; i++)
+        {
+            Console.WriteLine(room[i].RoomName);
+            Console.WriteLine(room[i].DungeonId);
+            Console.WriteLine(room[i].DungeonLevel);
+        }
+    }
 }
 
 public class Room
@@ -179,10 +189,7 @@ public class Room
             return -1;
         }
 
-        roomUserData[index] = new RoomUserData(newData.Name, newData.Gender, newData.Level);
-        .userClass = newData.HClass;
-        roomUserData[index].userName = newData.Name;
-        userLevel[index] = newData.Level;
+        roomUserData[index] = new RoomUserData(newData.Name, newData.Gender, newData.HClass, newData.Level);
         socket[index] = newPlayer;
         playerNum++;
 
@@ -200,9 +207,7 @@ public class Room
             return false;
         }
 
-        userClass[index] = 0;
-        userName[index] = "";
-        userLevel[index] = 0;
+        roomUserData[index] = new RoomUserData();
         socket[index] = null;
         playerNum--;
 
@@ -211,17 +216,9 @@ public class Room
 
     public void SwapPlayer(int origSlot, int DestiSlot)
     {
-        int tempInt = userClass[origSlot];
-        userClass[origSlot] = DestiSlot;
-        DestiSlot = tempInt;
-
-        tempInt = userLevel[origSlot];
-        userLevel[origSlot] = userLevel[DestiSlot];
-        userLevel[DestiSlot] = tempInt;
-
-        string tempString = userName[origSlot];
-        userName[origSlot] = userName[DestiSlot];
-        userName[DestiSlot] = tempString;
+        RoomUserData tempData = roomUserData[origSlot];
+        roomUserData[origSlot] = roomUserData[DestiSlot];
+        roomUserData[DestiSlot] = tempData;
     }
 }
 
