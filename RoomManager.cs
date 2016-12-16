@@ -44,7 +44,9 @@ public class RoomManager
             return -1;
         }
 
-        room[index] = new Room(createRoomData.RoomName, createRoomData.DungeonId, createRoomData.DungeonLevel);
+        string dungeonName = DungeonDatabase.Instance.GetDungeonData(createRoomData.DungeonId, createRoomData.DungeonLevel).Name;
+        Console.WriteLine(dungeonName);
+        room[index] = new Room(createRoomData.RoomName, dungeonName, createRoomData.DungeonId, createRoomData.DungeonLevel);
 
         return index;
     }
@@ -63,7 +65,7 @@ public class RoomManager
         return true;
     }
 
-    public void ExitRoom(int roomNum, Socket player)
+    public bool ExitRoom(int roomNum, Socket player)
     {
         room[roomNum].DeletePlayer(player);
 
@@ -71,7 +73,11 @@ public class RoomManager
         {
             Console.WriteLine("모든 플레이어가 나갔습니다.");
             room[roomNum] = new Room();
+
+            return true;
         }
+
+        return false;
     }
 
     public RoomListPacket GetRoomList()
@@ -96,6 +102,7 @@ public class RoomManager
 public class Room
 {
     string roomName;
+    string dungeonName;
     int dungeonId;
     int dungeonLevel;
     int playerNum;
@@ -103,10 +110,11 @@ public class Room
     Socket[] socket;
     bool[] ready;
 
-    public int PlayerNum { get { return playerNum; } }
     public string RoomName { get { return roomName; } }
+    public string DungeonName{ get { return dungeonName; } }
     public int DungeonId { get { return dungeonId; } }
     public int DungeonLevel { get { return dungeonLevel; } }
+    public int PlayerNum { get { return playerNum; } }
     public RoomUserData[] RoomUserData { get { return roomUserData; } }
     public Socket[] Socket { get { return socket; } }
     public bool[] Ready { get { return ready; } }
@@ -114,6 +122,7 @@ public class Room
     public Room()
     {
         roomName = "";
+        dungeonName = "";
         playerNum = 0;
         dungeonId = 0;
         dungeonLevel = 0;
@@ -127,12 +136,13 @@ public class Room
         }
     }
 
-    public Room(string newName, int newDungeonId, int newDungeonLevel)
+    public Room(string newRoomName, string newDungeonName, int newDungeonId, int newDungeonLevel)
     {
-        roomName = newName;
-        playerNum = 0;
+        roomName = newRoomName;
+        dungeonName = newDungeonName;
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
+        playerNum = 0;
         roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
         socket = new Socket[RoomManager.maxPlayerNum];
         ready = new bool[RoomManager.maxPlayerNum];
@@ -143,14 +153,28 @@ public class Room
         }
     }
 
-    public Room(string newName, byte newDungeonId, byte newDungeonLevel, RoomUserData[] newRoomUserData)
+    public Room(string newRoomName, int newDungeonId, int newDungeonLevel, RoomUserData[] newRoomUserData, int newPlayerNum)
     {
-        roomName = newName;
-        playerNum = 0;
+        roomName = newRoomName;
+        dungeonName = "";
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
-        ready = new bool[RoomManager.maxPlayerNum];
+        playerNum = newPlayerNum;
         roomUserData = newRoomUserData;
+        socket = new Socket[RoomManager.maxPlayerNum];
+        ready = new bool[RoomManager.maxPlayerNum];
+    }
+
+    public Room(string newRoomName, string newDungeonName, int newDungeonId, int newDungeonLevel, RoomUserData[] newRoomUserData, int newPlayerNum)
+    {
+        roomName = newRoomName;
+        dungeonName = newDungeonName;
+        dungeonId = newDungeonId;
+        dungeonLevel = newDungeonLevel;
+        playerNum = newPlayerNum;
+        roomUserData = newRoomUserData;
+        socket = new Socket[RoomManager.maxPlayerNum];
+        ready = new bool[RoomManager.maxPlayerNum];
     }
 
     public int FindEmptySlot()
@@ -194,6 +218,7 @@ public class Room
         playerNum++;
 
         Console.WriteLine(index + "번 슬롯에 유저 입장");
+        Console.WriteLine("유저 수 : " + playerNum);
 
         return index;
     }

@@ -12,8 +12,9 @@ public class RoomListPacket : Packet<RoomListData>
             {
                 ret &= Serialize((byte)Encoding.Unicode.GetBytes(data.Rooms[i].RoomName).Length);
                 ret &= Serialize(data.Rooms[i].RoomName);
-                ret &= Serialize(data.Rooms[i].DungeonId);
-                ret &= Serialize(data.Rooms[i].DungeonLevel);
+                ret &= Serialize((byte)data.Rooms[i].DungeonId);
+                ret &= Serialize((byte)data.Rooms[i].DungeonLevel);
+                ret &= Serialize((byte)data.Rooms[i].PlayerNum);
 
                 for (int j = 0; j < RoomManager.maxPlayerNum; j++)
                 {
@@ -42,6 +43,7 @@ public class RoomListPacket : Packet<RoomListData>
             string roomName;
             byte dungeonId = 0;
             byte dungeonLevel = 0;
+            byte playerNum = 0;
             byte userNameLength = 0;
             string userName;
             byte userGender = 0;
@@ -60,6 +62,7 @@ public class RoomListPacket : Packet<RoomListData>
                 ret &= Deserialize(out roomName, roomNameLength);
                 ret &= Deserialize(ref dungeonId);
                 ret &= Deserialize(ref dungeonLevel);
+                ret &= Deserialize(ref playerNum);
 
                 for (int j = 0; j < RoomManager.maxPlayerNum; j++)
                 {
@@ -72,7 +75,7 @@ public class RoomListPacket : Packet<RoomListData>
                     roomUserData[i] = new RoomUserData(userName, userGender, userClass, userLevel);
                 }
 
-                rooms[i] = new Room(roomName, dungeonId, dungeonLevel, roomUserData);
+                rooms[i] = new Room(roomName, dungeonId, dungeonLevel, roomUserData, playerNum);
             }
 
             element = new RoomListData(rooms);

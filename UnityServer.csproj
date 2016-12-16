@@ -45,12 +45,14 @@
     <Compile Include="Paket\Client2Server\CreateCharacterPacket.cs" />
     <Compile Include="Paket\Client2Server\CreateRoomPacket.cs" />
     <Compile Include="Paket\Client2Server\EnterRoomPacket.cs" />
+    <Compile Include="Paket\Client2Server\RequestDungeonDataPacket.cs" />
     <Compile Include="Paket\Client2Server\SkillUpPacket.cs" />
     <Compile Include="Paket\ResultPacket.cs" />
     <Compile Include="Paket\Server2Client\CharacterListPacket.cs" />
     <Compile Include="Paket\Server2Client\CharacterStatusPacket.cs" />
+    <Compile Include="Paket\Server2Client\DungeonRewardPacket.cs" />
     <Compile Include="Paket\Server2Client\MonsterStatusPacket.cs" />
-    <Compile Include="Paket\Server2Client\MonsterSpawnPacket.cs" />
+    <Compile Include="Paket\Server2Client\MonsterSpawnListPacket.cs" />
     <Compile Include="Paket\Server2Client\RoomNumberPacket.cs" />
     <Compile Include="Paket\Server2Client\RoomDataPacket.cs" />
     <Compile Include="Paket\Server2Client\UDPConnectionPacket.cs" />

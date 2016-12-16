@@ -5,15 +5,20 @@
         public bool Serialize(DungeonData data)
         {
             bool ret = true;
-
-            ret &= Serialize(data.StageNum);
-
-            for (int i = 0; i < data.StageNum; i++)
+            
+            //총 스테이지 개수
+            ret &= Serialize((byte)data.Stages.Count);
+            
+            for (int stageIndex = 0; stageIndex < data.Stages.Count; stageIndex++)
             {
-                for (int j = 0; j < data.StageData[i].MonsterSpawnData.Count; j++)
+                //이 스테이지의 몬스터 개수
+                ret &= Serialize((byte)data.Stages[stageIndex].MonsterSpawnData.Count);
+
+                for (int monsterIndex = 0; monsterIndex < data.Stages[stageIndex].MonsterSpawnData.Count; monsterIndex++)
                 {
-                    ret &= Serialize(data.StageData[i].MonsterSpawnData[j].MonsterId);
-                    ret &= Serialize(data.StageData[i].MonsterSpawnData[j].MonsterNum);
+                    ret &= Serialize(data.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterId);
+                    ret &= Serialize(data.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterLevel);
+                    ret &= Serialize(data.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterNum);
                 }
             }
 
@@ -30,18 +35,26 @@
 
             bool ret = true;
             byte stageNum = 0;
-            byte monsterNum = 0;
+            byte monsterKind = 0;
             byte monsterId = 0;
+            byte monsterLevel = 0;
+            byte monsterNum = 0;
 
             ret &= Deserialize(ref stageNum);
 
-            for (int i = 0; i < stageNum; i++)
+            for (int stageIndex = 0; stageIndex < stageNum; stageIndex++)
             {
-                ret &= Deserialize(ref monsterId);
-                ret &= Deserialize(ref monsterNum);
+                ret &= Deserialize(ref monsterKind);
 
-                element.StageData[i] = new Stage(i);
-                element.StageData[i].AddMonster(monsterId, monsterNum);
+                for(int monsterIndex = 0; monsterIndex < monsterKind; monsterIndex++)
+                {
+                    ret &= Deserialize(ref monsterId);
+                    ret &= Deserialize(ref monsterLevel);
+                    ret &= Deserialize(ref monsterNum);
+                }
+
+                element.Stages[stageIndex] = new Stage(stageIndex);
+                element.Stages[stageIndex].AddMonster(monsterId, monsterLevel, monsterNum);
             }
 
             return ret;
@@ -72,20 +85,24 @@
 public class MonsterSpawnData
 {
     byte monsterId;
+    byte monsterLevel;
     byte monsterNum;
 
     public byte MonsterId { get { return monsterId; } }
+    public byte MonsterLevel { get { return monsterLevel; } }
     public byte MonsterNum { get { return monsterNum; } }
 
     public MonsterSpawnData()
     {
         monsterId = 0;
+        monsterLevel = 0;
         monsterNum = 0;
     }
 
-    public MonsterSpawnData(byte newMonsterId, byte newMonsterNum)
+    public MonsterSpawnData(byte newMonsterId, byte newMonsterLevel, byte newMonsterNum)
     {
         monsterId = newMonsterId;
+        monsterLevel = newMonsterLevel;
         monsterNum = newMonsterNum;
     }
 }

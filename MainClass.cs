@@ -1,6 +1,7 @@
-﻿using System.Net;
-using System.Threading;
+﻿using System;
+using System.Net;
 using System.Collections.Generic;
+using System.Threading;
 
 public class UnityServer
 {
@@ -23,11 +24,12 @@ public class UnityServer
         while (true)
         {
             Thread.Sleep(1000);
-            if(System.Console.KeyAvailable)
+
+            if (System.Console.KeyAvailable)
             {
                 string key = System.Console.ReadLine();
 
-                if(key == "p" || key == "P")
+                if (key == "p" || key == "P")
                 {
                     dataHandler.RoomManager.PrintRoomList();
                 }

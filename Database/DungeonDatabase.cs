@@ -28,34 +28,36 @@ public class DungeonDatabase
     public void InitializeDungeonDatabase()
     {
         dungeonData = new List<DungeonData>();
-        
-        AddBaseData(new DungeonData((int)DungeonId.MissingBear, "잃어버린 곰"));
+
+        #region 잃어버린 곰 던전 1레벨
+        AddBaseData(new DungeonData((int)DungeonId.MissingBear, 1, "잃어버린 곰"));
 
         Stage missingBearStage1 = new Stage(1);
         Stage missingBearStage2 = new Stage(2);
         Stage missingBearStage3 = new Stage(3);
         Stage missingBearStage4 = new Stage(4);
 
-        missingBearStage1.AddMonster((int)MonsterId.Frog, 5);
-        missingBearStage1.AddMonster((int)MonsterId.Duck, 4);
-        missingBearStage1.AddMonster((int)MonsterId.Rabbit, 1);
+        missingBearStage1.AddMonster((int)MonsterId.Frog, 1, 5);
+        missingBearStage1.AddMonster((int)MonsterId.Duck, 1, 4);
+        missingBearStage1.AddMonster((int)MonsterId.Rabbit, 1, 1);
 
-        missingBearStage2.AddMonster((int)MonsterId.Frog, 4);
-        missingBearStage2.AddMonster((int)MonsterId.Duck, 4);
-        missingBearStage2.AddMonster((int)MonsterId.Bear, 1);
+        missingBearStage2.AddMonster((int)MonsterId.Frog, 1, 4);
+        missingBearStage2.AddMonster((int)MonsterId.Duck, 1, 4);
+        missingBearStage2.AddMonster((int)MonsterId.Bear, 1, 1);
 
-        missingBearStage3.AddMonster((int)MonsterId.Frog, 3);
-        missingBearStage3.AddMonster((int)MonsterId.Duck, 3);
-        missingBearStage3.AddMonster((int)MonsterId.Rabbit, 3);
+        missingBearStage3.AddMonster((int)MonsterId.Frog, 1, 3);
+        missingBearStage3.AddMonster((int)MonsterId.Duck, 1, 3);
+        missingBearStage3.AddMonster((int)MonsterId.Rabbit, 1, 3);
 
-        missingBearStage4.AddMonster((int)MonsterId.Rabbit, 5);
-        missingBearStage4.AddMonster((int)MonsterId.Duck, 4);
-        missingBearStage2.AddMonster((int)MonsterId.BlackBear, 1);
+        missingBearStage4.AddMonster((int)MonsterId.Rabbit, 1, 5);
+        missingBearStage4.AddMonster((int)MonsterId.Duck, 1, 4);
+        missingBearStage4.AddMonster((int)MonsterId.BlackBear, 1, 1);
 
         dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage1);
         dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage2);
         dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage3);
         dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage4);
+        #endregion
     }
 
     public bool AddBaseData(DungeonData newDungeonData)
@@ -73,13 +75,13 @@ public class DungeonDatabase
 
     }
 
-    public DungeonData GetDungeonData(int Id)
+    public DungeonData GetDungeonData(int id, int level)
     {
-        foreach (DungeonData baseData in dungeonData)
+        for (int i = 0; i < dungeonData.Count; i++)
         {
-            if (baseData.Id == Id)
+            if (dungeonData[i].Id == id && dungeonData[i].Level == level)
             {
-                return baseData;
+                return dungeonData[i];
             }
         }
 
@@ -91,27 +93,27 @@ public class DungeonData
 {
     int id;
     string name;
-    int stageNum;
+    int level;
     List<Stage> stages;
 
     public int Id { get { return id; } }
     public string Name { get { return name; } }
-    public int StageNum { get { return stageNum; } }
-    public List<Stage> StageData { get { return stages; } }
+    public int Level { get { return level; } }
+    public List<Stage> Stages { get { return stages; } }
 
     public DungeonData()
     {
         id = 0;
         name = "";
-        stageNum = 0;
+        level = 0;
         stages = new List<Stage>();
     }
 
-    public DungeonData(int _id, string _name)
+    public DungeonData(int _id, int _level, string _name)
     {
         id = _id;
         name = _name;
-        stageNum = 0;
+        level = _level;
         stages = new List<Stage>();
     }
 
@@ -133,7 +135,6 @@ public class DungeonData
         try
         {
             stages.Add(newStage);
-            stageNum++;
             return true;
         }
         catch
@@ -147,13 +148,24 @@ public class DungeonData
         try
         {
             stages.Remove(GetStage(index));
-            stageNum--;
             return true;
         }
         catch
         {
             return false;
         }
+    }
+
+    public int GetMonsterNum()
+    {
+        int count = 0;
+
+        for (int i = 0; i < stages.Count; i++)
+        {
+            count += stages[i].MonsterSpawnData.Count;
+        }
+
+        return count;
     }
 }
 
@@ -163,7 +175,7 @@ public class Stage
     List<MonsterSpawnData> monsterSpawnData;
 
     public int StageNum { get { return stageNum; } }
-    public List<MonsterSpawnData> MonsterSpawnData { get { return MonsterSpawnData; } }
+    public List<MonsterSpawnData> MonsterSpawnData { get { return monsterSpawnData; } }
 
     public Stage()
     {
@@ -177,11 +189,11 @@ public class Stage
         monsterSpawnData = new List<MonsterSpawnData>();
     }
 
-    public void AddMonster(int monsterId, int monsterNum)
+    public void AddMonster(int monsterId, int monsterLevel, int monsterNum)
     {
         try
         {
-            monsterSpawnData.Add(new MonsterSpawnData((byte)monsterId, (byte)monsterNum));            
+            monsterSpawnData.Add(new MonsterSpawnData((byte)monsterId, (byte)monsterLevel,(byte)monsterNum));            
         }
         catch
         {
@@ -189,7 +201,7 @@ public class Stage
         }
     }
 
-    public bool RemoveState(int index)
+    public bool RemoveMonster(int index)
     {
         try
         {
@@ -199,6 +211,18 @@ public class Stage
         catch
         {
             return false;
-        }        
+        }
+    }
+
+    public int GetMonsterNum()
+    {
+        int count = 0;
+
+        for (int i = 0; i < monsterSpawnData.Count; i++)
+        {
+            count += monsterSpawnData[i].MonsterNum;
+        }
+
+        return count;
     }
 }

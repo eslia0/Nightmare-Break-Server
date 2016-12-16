@@ -21,7 +21,7 @@
     StartGame,
     RequestUdpConnection,
     RequestMonsterSpawnList,
-    RequestDungeonData,
+    RequestMonsterStatusData,
     UdpConnectComplete,
 }
 
@@ -45,7 +45,7 @@ public enum ServerPacketId
     ExitRoomNumber,
     StartGame,
     MonsterSpawnList,
-    DungeonData,
+    MonsterStatusData,
     UDPConnection,
     StartDungeon,
 }
