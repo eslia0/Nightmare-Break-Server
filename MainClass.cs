@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Net;
-using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Threading;
+using System.Collections.Generic;
 
 public class UnityServer
 {
     public const short packetId = 1;
     public const short packetSource = 1;
     public const short packetLength = 2;
+    
+    public static bool[] connectionCheck;
 
     public static void Main(string[] args)
     {
@@ -23,7 +26,24 @@ public class UnityServer
 
         while (true)
         {
-            Thread.Sleep(1000);
+            connectionCheck = new bool[DataReceiver.clients.Count];
+
+            for (int userIndex = 0; userIndex < connectionCheck.Length; userIndex++)
+            {
+                dataHandler.ServerConnectionCheck(DataReceiver.clients[userIndex]);
+            }
+
+            Thread.Sleep(3000);
+
+            for (int userIndex = 0; userIndex < connectionCheck.Length; userIndex++)
+            {
+                if (!connectionCheck[userIndex])
+                {
+                    DataPacket packet = new DataPacket(new byte[0], DataReceiver.clients[userIndex]);
+                    dataHandler.GameClose(packet);
+                    DataReceiver.clients.Remove(DataReceiver.clients[userIndex]);
+                }
+            }
 
             if (System.Console.KeyAvailable)
             {
@@ -31,7 +51,7 @@ public class UnityServer
 
                 if (key == "p" || key == "P")
                 {
-                    dataHandler.RoomManager.PrintRoomList();
+
                 }
             }
         }

@@ -1,6 +1,7 @@
 ﻿public enum ClientPacketId
 {
     None = 0,
+    ServerConnectionAnswer,
     CreateAccount,
     DeleteAccount,
     Login,
@@ -11,6 +12,7 @@
     DeleteCharacter,
     RequestCharacterStatus,
     RequestRoomList,
+    ReturnToSelect,
     SkillUp,
     EquipUpgrade,
     CreateRoom,
@@ -28,6 +30,7 @@
 public enum ServerPacketId
 {
     None = 0,
+    ServerConnectionCheck,
     CreateAccountResult,
     DeleteAccountResult,
     LoginResult,
@@ -35,8 +38,9 @@ public enum ServerPacketId
     CharacterList,
     CreateCharacterResult,
     DeleteChracterResult,
-    RoomList,
     CharacterStatus,
+    RoomList,
+    ReturnToSelectResult,
     SkillUpResult,
     EquipUpgradeResult,
     CreateRoomNumber,
@@ -46,6 +50,6 @@ public enum ServerPacketId
     StartGame,
     MonsterSpawnList,
     MonsterStatusData,
-    UDPConnection,
+    UdpConnection,
     StartDungeon,
 }

@@ -99,6 +99,14 @@ public class RoomManager
     }
 }
 
+public enum RoomState
+{
+    empty = 0,
+    wait = 1,
+    Full = 2,
+    inGame = 3,
+}
+
 public class Room
 {
     string roomName;
@@ -106,6 +114,7 @@ public class Room
     int dungeonId;
     int dungeonLevel;
     int playerNum;
+    int state;
     RoomUserData[] roomUserData;
     Socket[] socket;
     bool[] ready;
@@ -115,6 +124,7 @@ public class Room
     public int DungeonId { get { return dungeonId; } }
     public int DungeonLevel { get { return dungeonLevel; } }
     public int PlayerNum { get { return playerNum; } }
+    public int State { get { return state; } }
     public RoomUserData[] RoomUserData { get { return roomUserData; } }
     public Socket[] Socket { get { return socket; } }
     public bool[] Ready { get { return ready; } }
@@ -126,6 +136,7 @@ public class Room
         playerNum = 0;
         dungeonId = 0;
         dungeonLevel = 0;
+        state = (int)RoomState.empty;
         roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
         socket = new Socket[RoomManager.maxPlayerNum];        
         ready = new bool[RoomManager.maxPlayerNum];
@@ -143,6 +154,7 @@ public class Room
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
         playerNum = 0;
+        state = (int)RoomState.empty;
         roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
         socket = new Socket[RoomManager.maxPlayerNum];
         ready = new bool[RoomManager.maxPlayerNum];
@@ -217,6 +229,15 @@ public class Room
         socket[index] = newPlayer;
         playerNum++;
 
+        if (playerNum < RoomManager.maxPlayerNum)
+        {
+            state = (int)RoomState.wait;
+        }
+        else if (playerNum == RoomManager.maxPlayerNum)
+        {
+            state = (int)RoomState.Full;
+        }
+
         Console.WriteLine(index + "번 슬롯에 유저 입장");
         Console.WriteLine("유저 수 : " + playerNum);
 
@@ -236,6 +257,11 @@ public class Room
         socket[index] = null;
         playerNum--;
 
+        if(playerNum == 0)
+        {
+            state = (int)RoomState.empty;
+        }
+
         return true;
     }
 
@@ -244,6 +270,11 @@ public class Room
         RoomUserData tempData = roomUserData[origSlot];
         roomUserData[origSlot] = roomUserData[DestiSlot];
         roomUserData[DestiSlot] = tempData;
+    }
+
+    public void GameStart()
+    {
+        state = (int)RoomState.inGame;
     }
 }
 

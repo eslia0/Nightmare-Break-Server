@@ -7,6 +7,7 @@ public class DataReceiver
 {
 	public Socket listenSock;
 	Queue<DataPacket> msgs;
+    public static List<Socket> clients;
 
 	object receiveLock;
 
@@ -24,6 +25,7 @@ public class DataReceiver
 
 		msgs = newQueue;
 		receiveLock = newLock;
+        clients = new List<Socket>();
 
         asyncAcceptCallback = new AsyncCallback (HandleAsyncAccept);
 		asyncReceiveLengthCallBack = new AsyncCallback (HandleAsyncReceiveLength);
@@ -53,6 +55,7 @@ public class DataReceiver
         {
             Console.WriteLine(clientSock.RemoteEndPoint.ToString() + " 접속");
 
+            clients.Add(clientSock);
             AsyncData asyncData = new AsyncData(clientSock);
             clientSock.BeginReceive(asyncData.msg, 0, UnityServer.packetLength, SocketFlags.None, asyncReceiveLengthCallBack, (Object)asyncData);
         }
@@ -76,8 +79,10 @@ public class DataReceiver
             //Console.ForegroundColor = ConsoleColor.Red;
             //Console.ForegroundColor = ConsoleColor.Black;
             Console.WriteLine("DataReceiver::HandleAsyncReceiveLength.EndReceive 에러");
-            DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
-            clientSock.Close();
+            if (clientSock.Connected)
+            {
+                DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
+            }            
             
             return;
         }
@@ -85,12 +90,6 @@ public class DataReceiver
         if (asyncData.msgSize <= 0)
         {
             Console.WriteLine(asyncData.clientSock.RemoteEndPoint.ToString() + " 접속 종료");
-
-            if (clientSock.Connected)
-            {
-                DataHandler.Instance.GameClose(new DataPacket(new byte[0], asyncData.clientSock));
-            }
-
             return;
         }
 

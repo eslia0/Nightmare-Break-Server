@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public enum DungeonId
 {
-    MissingBear,
+    LostTeddyBear,
 }
 
 public class DungeonDatabase
@@ -30,7 +30,7 @@ public class DungeonDatabase
         dungeonData = new List<DungeonData>();
 
         #region 잃어버린 곰 던전 1레벨
-        AddBaseData(new DungeonData((int)DungeonId.MissingBear, 1, "잃어버린 곰"));
+        AddBaseData(new DungeonData((int)DungeonId.LostTeddyBear, 1, "잃어버린 곰"));
 
         Stage missingBearStage1 = new Stage(1);
         Stage missingBearStage2 = new Stage(2);
@@ -53,10 +53,10 @@ public class DungeonDatabase
         missingBearStage4.AddMonster((int)MonsterId.Duck, 1, 4);
         missingBearStage4.AddMonster((int)MonsterId.BlackBear, 1, 1);
 
-        dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage1);
-        dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage2);
-        dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage3);
-        dungeonData[(int)DungeonId.MissingBear].AddStage(missingBearStage4);
+        dungeonData[(int)DungeonId.LostTeddyBear].AddStage(missingBearStage1);
+        dungeonData[(int)DungeonId.LostTeddyBear].AddStage(missingBearStage2);
+        dungeonData[(int)DungeonId.LostTeddyBear].AddStage(missingBearStage3);
+        dungeonData[(int)DungeonId.LostTeddyBear].AddStage(missingBearStage4);
         #endregion
     }
 

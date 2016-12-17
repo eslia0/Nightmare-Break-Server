@@ -130,9 +130,6 @@ public class DataHandler
 
                 ResizeByteArray(0, UnityServer.packetSource + UnityServer.packetId, ref packet.msg);
 
-                Console.WriteLine("패킷 출처 : " + headerData.source);
-                Console.WriteLine("패킷 ID : " + headerData.id);
-
                 //Dictionary에 등록된 델리게이트 메소드에서 PacketId를 반환받는다.
                 if (m_notifier.TryGetValue(headerData.id, out recvNotifier))
                 {
@@ -150,6 +147,7 @@ public class DataHandler
 
     public void SetNotifier()
     {
+        m_notifier.Add((int)ClientPacketId.ServerConnectionAnswer, ServerConnectionAnswer);
         m_notifier.Add((int)ClientPacketId.CreateAccount, CreateAccount);
         m_notifier.Add((int)ClientPacketId.DeleteAccount, DeleteAccount);
         m_notifier.Add((int)ClientPacketId.Login, Login);
@@ -160,6 +158,7 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.DeleteCharacter, DeleteCharacter);
         m_notifier.Add((int)ClientPacketId.RequestCharacterStatus, RequestCharacterStatus);
         m_notifier.Add((int)ClientPacketId.RequestRoomList, RequestRoomList);
+        m_notifier.Add((int)ClientPacketId.ReturnToSelect, ReturnToSelect);
         m_notifier.Add((int)ClientPacketId.CreateRoom, CreateRoom);
         m_notifier.Add((int)ClientPacketId.EnterRoom, EnterRoom);
         m_notifier.Add((int)ClientPacketId.ExitRoom, ExitRoom);
@@ -170,6 +169,28 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.RequestMonsterStatusData, RequestMonsterStatusData);
         m_notifier.Add((int)ClientPacketId.RequestUdpConnection, RequestUDPConnection);
         m_notifier.Add((int)ClientPacketId.UdpConnectComplete, UDPConnectComplete);
+    }
+
+    //연결 체크
+    public void ServerConnectionCheck(Socket client)
+    {
+        ResultData resultData = new ResultData();
+        ResultPacket resultDataPacket = new ResultPacket(resultData);
+        resultDataPacket.SetPacketId((int)ServerPacketId.ServerConnectionCheck);
+
+        byte[] msg = CreatePacket(resultDataPacket);
+        DataPacket packet = new DataPacket(msg, client);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
+    }
+
+    //연결 체크 답신
+    public void ServerConnectionAnswer(DataPacket packet)
+    {
+        UnityServer.connectionCheck[DataReceiver.clients.IndexOf(packet.client)] = true;
     }
 
     public void CreateAccount(DataPacket packet)
@@ -394,48 +415,15 @@ public class DataHandler
     public void Logout(DataPacket packet)
     {
         Console.WriteLine(packet.client.RemoteEndPoint.ToString() + " 로그아웃요청");
-
-        string id = loginUser[packet.client];
-
+        
         Result result = Result.Fail;
 
-        try
+        if (RemoveUserData(packet.client))
         {
-            if (loginUser.ContainsKey(packet.client))
-            {
-                if (userState.ContainsKey(id))
-                {
-                    if (userState[id].state >= 0)
-                    {
-                        roomManager.ExitRoom(userState[id].state, packet.client);
-                    }
-
-                    userState.Remove(id);
-                }
-
-                loginUser.Remove(packet.client);
-                Console.WriteLine(id + "로그아웃");
-                result = Result.Success;
-            }
-            else
-            {
-                Console.WriteLine("로그인되어있지 않은 아이디입니다. : " + id);
-                result = Result.Fail;
-            }
-
-            if (userState.ContainsKey(id))
-            {
-                userState.Remove(id);
-            }
-
-            if (database.UserData.Contains(id))
-            {
-                database.UserData.Remove(id);
-            }
+            result = Result.Success;
         }
-        catch
+        else
         {
-            Console.WriteLine("DataHandler::Logout.ContainsKey 에러");
             result = Result.Fail;
         }
 
@@ -455,65 +443,75 @@ public class DataHandler
     //게임 종료
     public void GameClose(DataPacket packet)
     {
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "접속종료 처리");
+
+        if (RemoveUserData(packet.client))
+        {
+            Console.WriteLine("접속종료 처리 성공");
+        }
+        else
+        {
+            Console.WriteLine("접속종료 처리 에러");
+        }
+
+        packet.client.Close();
+    }
+
+    //접속 종료 처리
+    public bool RemoveUserData(Socket client)
+    {
         string id = "";
 
         try
         {
-            if (!loginUser.ContainsKey(packet.client))
+            //로그인 했을 때
+            if (loginUser.ContainsKey(client))
             {
-                Console.WriteLine("로그인하지 않았습니다.");
-                return;
-            }
-            else
-            {
-                id = loginUser[packet.client];
-            }            
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::GameClose.socket 에러");
-        }
-        
-        try
-        {
-            if (userState.ContainsKey(id))
-            {
-                if (userState[id].state >= 0)
+                id = loginUser[client];
+
+                //유저 상태 추가
+                if (userState.ContainsKey(id))
                 {
-                    roomManager.ExitRoom(userState[id].state, packet.client);
+                    //캐릭터를 선택했을 때
+                    if (userState[id].characterId >= 0)
+                    {
+                        //방에 입장했을 때
+                        if (userState[id].state >= 0)
+                        {
+                            int roomNum = userState[id].state;
+
+                            //게임에 입장했을 때
+                            if (roomManager.Room[roomNum].State == (int)RoomState.inGame)
+                            {
+
+                            }
+
+                            //방에서 퇴장 시킴
+                            userState[id].state = -1;
+                        }
+
+                        //캐릭터 선택 안 한 상태
+                        userState[id].characterId = -1;
+                    }
+
+                    // 유저 상태 제거
+                    userState.Remove(id);
                 }
 
-                userState.Remove(id);
-            }
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::GameClose.ContainsKey - roomManager 에러");
-            Console.WriteLine("방에 입장하지 않았습니다.");
-        }
-
-        try
-        {
-            if (loginUser.ContainsKey(packet.client))
-            {
+                //유저 데이터 저장 후 리스트에서 삭제
                 database.FileSave(id + ".data", database.GetUserData(id));
                 database.UserData.Remove(id);
 
-                loginUser.Remove(packet.client);
+                //로그아웃 처리
+                loginUser.Remove(client);
             }
+            
+            return true;
         }
-        catch
+        catch(Exception e)
         {
-            Console.WriteLine("DataHandler::GameClose.ContainsKey - database 에러");
-        }
-
-        try
-        {
-            packet.client.Close();
-        }
-        catch
-        {
-            Console.WriteLine("DataHandler::GameClose.Close 에러");
+            Console.WriteLine("DataHandler::RemoveUserData.에러" + e.Message);
+            return false;
         }
     }
 
@@ -704,6 +702,41 @@ public class DataHandler
         }
     }
 
+    //대기방 -> 캐릭터 선택
+    public void ReturnToSelect(DataPacket packet)
+    {
+        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "캐릭터 선택창으로 돌아가기");
+
+        string id = loginUser[packet.client];
+
+        Result result = Result.Fail;
+
+        if (userState.ContainsKey(id))
+        {
+            userState[id].characterId = -1;
+
+            result = Result.Success;
+        }
+        else
+        {
+            Console.WriteLine("DataHandler::ReturnToSelect.ContainsKey 에러");
+
+            result = Result.Fail;
+        }
+
+        ResultData resultData = new ResultData((byte)result);
+        ResultPacket resultPacket = new ResultPacket(resultData);
+        resultPacket.SetPacketId((int)ServerPacketId.ReturnToSelectResult);
+        
+        byte[] msg = CreatePacket(resultPacket);
+        packet = new DataPacket(msg, packet.client);
+
+        lock (sendLock)
+        {
+            sendMsgs.Enqueue(packet);
+        }
+    }
+
     //스킬 투자
     public void SkillUp(DataPacket packet)
     {
@@ -770,10 +803,10 @@ public class DataHandler
         Console.WriteLine("방 생성 번호 : " + result);
 
         RoomNumberData resultData = new RoomNumberData(result);
-        RoomNumberPacket resultDataPacket = new RoomNumberPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.CreateRoomNumber);
+        RoomNumberPacket resultPacket = new RoomNumberPacket(resultData);
+        resultPacket.SetPacketId((int)ServerPacketId.CreateRoomNumber);
 
-        byte[] msg = CreatePacket(resultDataPacket);
+        byte[] msg = CreatePacket(resultPacket);
         packet = new DataPacket(msg, packet.client);
         
         lock (sendLock)
@@ -834,10 +867,10 @@ public class DataHandler
         }
 
         RoomNumberData resultData = new RoomNumberData(result);
-        RoomNumberPacket resultDataPacket = new RoomNumberPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.EnterRoomNumber);
+        RoomNumberPacket resultPacket = new RoomNumberPacket(resultData);
+        resultPacket.SetPacketId((int)ServerPacketId.EnterRoomNumber);
 
-        byte[] msg = CreatePacket(resultDataPacket);
+        byte[] msg = CreatePacket(resultPacket);
         packet = new DataPacket(msg, packet.client);
 
         lock (sendLock)
@@ -912,7 +945,7 @@ public class DataHandler
         {
             empty = roomManager.ExitRoom(userState[id].state, packet.client);
             roomNum = userState[id].state;
-            userState[id].state = 0;
+            userState[id].state = -1;
             result = Result.Success;
         }
         catch
@@ -940,8 +973,6 @@ public class DataHandler
         {
             for (int playerIndex = 0; playerIndex < RoomManager.maxPlayerNum; playerIndex++)
             {
-                Console.WriteLine();
-
                 if (roomManager.Room[exitRoomData.RoomNum].Socket[playerIndex] != null)
                 {
                     packet = new DataPacket(new byte[0], roomManager.Room[exitRoomData.RoomNum].Socket[playerIndex]);
@@ -1010,7 +1041,7 @@ public class DataHandler
 
         UDPConnectionData udpConnctionData = new UDPConnectionData(ip);
         UDPConnectionPacket udpConnctionDataPacket = new UDPConnectionPacket(udpConnctionData);
-        udpConnctionDataPacket.SetPacketId((int)ServerPacketId.UDPConnection);
+        udpConnctionDataPacket.SetPacketId((int)ServerPacketId.UdpConnection);
 
         byte[] msg = CreatePacket(udpConnctionDataPacket);
 
