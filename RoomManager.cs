@@ -44,7 +44,7 @@ public class RoomManager
             return -1;
         }
 
-        string dungeonName = DungeonDatabase.Instance.GetDungeonData(createRoomData.DungeonId, createRoomData.DungeonLevel).Name;
+        string dungeonName = DungeonDatabase.Instance.GetDungeonBaseData(createRoomData.DungeonId).Name;
         Console.WriteLine(dungeonName);
         room[index] = new Room(createRoomData.RoomName, dungeonName, createRoomData.DungeonId, createRoomData.DungeonLevel);
 

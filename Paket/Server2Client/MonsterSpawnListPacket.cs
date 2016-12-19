@@ -1,8 +1,8 @@
-﻿public class MonsterSpawnListPacket : Packet<DungeonData>
+﻿public class MonsterSpawnListPacket : Packet<DungeonLevelData>
 {
     public class MonsterSpawnListSerializer : Serializer
     {
-        public bool Serialize(DungeonData data)
+        public bool Serialize(DungeonLevelData data)
         {
             bool ret = true;
             
@@ -25,7 +25,7 @@
             return ret;
         }
 
-        public bool Deserialize(ref DungeonData element)
+        public bool Deserialize(ref DungeonLevelData element)
         {
             if (GetDataSize() == 0)
             {
@@ -53,22 +53,22 @@
                     ret &= Deserialize(ref monsterNum);
                 }
 
-                element.Stages[stageIndex] = new Stage(stageIndex);
-                element.Stages[stageIndex].AddMonster(monsterId, monsterLevel, monsterNum);
+                element.AddStage(new Stage(stageIndex));
+                element.GetStage(stageIndex).AddMonster(monsterId, monsterLevel, monsterNum);
             }
 
             return ret;
         }
     }
 
-    public MonsterSpawnListPacket(DungeonData data) // 데이터로 초기화(송신용)
+    public MonsterSpawnListPacket(DungeonLevelData data) // 데이터로 초기화(송신용)
     {
         m_data = data;
     }
 
     public MonsterSpawnListPacket(byte[] data) // 패킷을 데이터로 변환(수신용)
     {
-        m_data = new DungeonData();
+        m_data = new DungeonLevelData();
         MonsterSpawnListSerializer serializer = new MonsterSpawnListSerializer();
         serializer.SetDeserializedData(data);
         serializer.Deserialize(ref m_data);
@@ -79,30 +79,5 @@
         MonsterSpawnListSerializer serializer = new MonsterSpawnListSerializer();
         serializer.Serialize(m_data);
         return serializer.GetSerializedData();
-    }
-}
-
-public class MonsterSpawnData
-{
-    byte monsterId;
-    byte monsterLevel;
-    byte monsterNum;
-
-    public byte MonsterId { get { return monsterId; } }
-    public byte MonsterLevel { get { return monsterLevel; } }
-    public byte MonsterNum { get { return monsterNum; } }
-
-    public MonsterSpawnData()
-    {
-        monsterId = 0;
-        monsterLevel = 0;
-        monsterNum = 0;
-    }
-
-    public MonsterSpawnData(byte newMonsterId, byte newMonsterLevel, byte newMonsterNum)
-    {
-        monsterId = newMonsterId;
-        monsterLevel = newMonsterLevel;
-        monsterNum = newMonsterNum;
     }
 }

@@ -81,6 +81,8 @@ public class DataHandler
 
     public DataHandler(Queue<DataPacket> receiveQueue, Queue<DataPacket> sendQueue, object newReceiveLock, object newSendLock)
     {
+        instance = this;
+
         receiveMsgs = receiveQueue;
         sendMsgs = sendQueue;
         receiveLock = newReceiveLock;
@@ -100,6 +102,8 @@ public class DataHandler
 
         Thread handleThread = new Thread(new ThreadStart(DataHandle));
         handleThread.Start();
+        //Thread logoutCheckThread = new Thread(new ThreadStart(CheckLogoutUser));
+        //logoutCheckThread.Start();
     }
 
     public void DataHandle()
@@ -168,18 +172,18 @@ public class DataHandler
         m_notifier.Add((int)ClientPacketId.RequestMonsterSpawnList, RequestMonsterSpawnList);
         m_notifier.Add((int)ClientPacketId.RequestMonsterStatusData, RequestMonsterStatusData);
         m_notifier.Add((int)ClientPacketId.RequestUdpConnection, RequestUDPConnection);
-        m_notifier.Add((int)ClientPacketId.UdpConnectComplete, UDPConnectComplete);
+        m_notifier.Add((int)ClientPacketId.LoadingComplete, LoadingComplete);
     }
 
     //연결 체크
-    public void ServerConnectionCheck(Socket client)
+    public void ServerConnectionCheck(DataPacket packet)
     {
         ResultData resultData = new ResultData();
-        ResultPacket resultDataPacket = new ResultPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.ServerConnectionCheck);
+        ResultPacket resultPacket = new ResultPacket(resultData);
+        resultPacket.SetPacketId((int)ServerPacketId.ServerConnectionCheck);
 
-        byte[] msg = CreatePacket(resultDataPacket);
-        DataPacket packet = new DataPacket(msg, client);
+        byte[] msg = CreatePacket(resultPacket);
+        packet = new DataPacket(msg, packet.client);
 
         lock (sendLock)
         {
@@ -190,7 +194,28 @@ public class DataHandler
     //연결 체크 답신
     public void ServerConnectionAnswer(DataPacket packet)
     {
-        UnityServer.connectionCheck[DataReceiver.clients.IndexOf(packet.client)] = true;
+        ConnectionCheck newConnectionCheck = ConnectionChecker.FindClientWithSocket(packet.client);
+
+        if (newConnectionCheck != null)
+        {
+            newConnectionCheck.IsConnected = true;
+        }
+    }
+
+    public void CheckLogoutUser()
+    {
+        while (true)
+        {
+            if (loginUser.Keys.Count > 0)
+            {
+                List<Socket> clients = new List<Socket>(loginUser.Keys);
+
+                foreach (Socket client in clients)
+                {
+
+                }
+            }
+        }
     }
 
     public void CreateAccount(DataPacket packet)
@@ -296,6 +321,9 @@ public class DataHandler
             {
                 if (((AccountData)database.AccountData[accountData.Id]).Password == accountData.Password)
                 {
+                    List<string> id = new List<string>(loginUser.Values);
+
+                    
                     if (!loginUser.ContainsValue(accountData.Id))
                     {
                         result = Result.Success;
@@ -335,6 +363,7 @@ public class DataHandler
 
                             Console.WriteLine("현재 접속중 해제");
                         }
+                        
                         result = Result.Fail;
                     }
                 }
@@ -443,7 +472,15 @@ public class DataHandler
     //게임 종료
     public void GameClose(DataPacket packet)
     {
-        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "접속종료 처리");
+        try
+        {
+            Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "접속 종료");
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::GameClose.Socket 에러");
+            return;
+        }
 
         if (RemoveUserData(packet.client))
         {
@@ -485,6 +522,7 @@ public class DataHandler
                             {
 
                             }
+                            roomManager.ExitRoom(roomNum, client);
 
                             //방에서 퇴장 시킴
                             userState[id].state = -1;
@@ -505,12 +543,14 @@ public class DataHandler
                 //로그아웃 처리
                 loginUser.Remove(client);
             }
+
+            ConnectionChecker.RemoveClient(client);
             
             return true;
         }
         catch(Exception e)
         {
-            Console.WriteLine("DataHandler::RemoveUserData.에러" + e.Message);
+            Console.WriteLine("DataHandler::RemoveUserData.에러 " + e.Message);
             return false;
         }
     }
@@ -676,6 +716,8 @@ public class DataHandler
         CharacterStatusPacket characterStatusPacket = new CharacterStatusPacket(characterStatusData);
         characterStatusPacket.SetPacketId((int)ServerPacketId.CharacterStatus);
 
+        Console.WriteLine(characterStatusData.HClass + ", " + characterStatusData.Gender);
+
         byte[] msg = CreatePacket(characterStatusPacket);
         packet = new DataPacket(msg, packet.client);
 
@@ -688,7 +730,15 @@ public class DataHandler
     //방 목록 요청
     public void RequestRoomList(DataPacket packet)
     {
-        Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 목록 요청");
+        try
+        {
+            Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "방 목록 요청");
+        }
+        catch
+        {
+            Console.WriteLine("DataHandler::RequestRoomList.Socket 에러");
+            return;
+        }
 
         RoomListPacket roomListPacket = roomManager.GetRoomList();
         roomListPacket.SetPacketId((int)ServerPacketId.RoomList);
@@ -1063,10 +1113,13 @@ public class DataHandler
         RequestDungeonDataPacket requestDungeonDataPacket = new RequestDungeonDataPacket(packet.msg);
         RequestDungeonData requestDungeonData = requestDungeonDataPacket.GetData();
 
-        DungeonData dungeonData = dungeonDatabase.GetDungeonData(requestDungeonData.DungeonId, requestDungeonData.DungeonLevel);
-        MonsterSpawnListPacket monsterSpawnListPacket = new MonsterSpawnListPacket(dungeonData);
-        monsterSpawnListPacket.SetPacketId((int)ServerPacketId.MonsterSpawnList);
+        Console.WriteLine(requestDungeonData.DungeonId + ", "+ requestDungeonData.DungeonLevel);
+        DungeonLevelData dungeonLevelData = dungeonDatabase.GetDungeonBaseData(requestDungeonData.DungeonId).GetLevelData(requestDungeonData.DungeonLevel);
         
+        MonsterSpawnListPacket monsterSpawnListPacket = new MonsterSpawnListPacket(dungeonLevelData);
+        monsterSpawnListPacket.SetPacketId((int)ServerPacketId.MonsterSpawnList);
+
+
         byte[] msg = CreatePacket(monsterSpawnListPacket);
 
         packet = new DataPacket(msg, packet.client);
@@ -1085,22 +1138,18 @@ public class DataHandler
         RequestDungeonDataPacket requestDungeonDataPacket = new RequestDungeonDataPacket(packet.msg);
         RequestDungeonData requestDungeonData = requestDungeonDataPacket.GetData();
 
-        DungeonData dungeonData = dungeonDatabase.GetDungeonData(requestDungeonData.DungeonId, requestDungeonData.DungeonLevel);
+        DungeonLevelData dungeonLevelData = dungeonDatabase.GetDungeonBaseData(requestDungeonData.DungeonId).GetLevelData(requestDungeonData.DungeonLevel);
 
-        int monsterNum = dungeonData.GetMonsterNum();
+        int monsterNum = dungeonLevelData.GetMonsterNum();
         MonsterBaseData[] monsterBaseData = new MonsterBaseData[monsterNum];
         int dataIndex = 0;
 
-        Console.WriteLine(monsterNum);
-        Console.WriteLine(dungeonData.Stages.Count);
-
-        for (int stageIndex = 0; stageIndex < dungeonData.Stages.Count; stageIndex++)
+        for (int stageIndex = 0; stageIndex < dungeonLevelData.Stages.Count; stageIndex++)
         {
-            Console.WriteLine(dungeonData.Stages[stageIndex].MonsterSpawnData.Count);
-            for (int monsterIndex = 0; monsterIndex < dungeonData.Stages[stageIndex].MonsterSpawnData.Count; monsterIndex++)
+            for (int monsterIndex = 0; monsterIndex < dungeonLevelData.Stages[stageIndex].MonsterSpawnData.Count; monsterIndex++)
             {
-                int monsterId = dungeonData.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterId;
-                int monsterLevel = dungeonData.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterLevel;
+                int monsterId = dungeonLevelData.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterId;
+                int monsterLevel = dungeonLevelData.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterLevel;
 
                 monsterBaseData[dataIndex] = monsterDatabase.GetBaseData(monsterId);
                 MonsterLevelData monsterLevelData = monsterDatabase.GetBaseData(monsterId).GetLevelData(monsterLevel);
@@ -1114,6 +1163,22 @@ public class DataHandler
         MonsterStatusPacket monsterStatusPacket = new MonsterStatusPacket(monsterStatusData);
         monsterStatusPacket.SetPacketId((int)ServerPacketId.MonsterStatusData);
 
+        Console.WriteLine(monsterStatusData.MonsterNum);
+        for (int i = 0; i < monsterStatusData.MonsterNum; i++)
+        {
+            Console.WriteLine(monsterStatusData.MonsterData[i].Id);
+            Console.WriteLine(monsterStatusData.MonsterData[i].Name);
+
+            for (int j = 0; j < monsterStatusData.MonsterData[i].MonsterLevelData.Count; j++)
+            {
+                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].Attack);
+                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].Defense);
+                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].HealthPoint);
+                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].Level);
+                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].MoveSpeed);
+            }
+        }
+
         byte[] msg = CreatePacket(monsterStatusPacket);
 
         packet = new DataPacket(msg, packet.client);
@@ -1125,7 +1190,7 @@ public class DataHandler
     }
 
     //UDP 연결 완료
-    public void UDPConnectComplete(DataPacket packet)
+    public void LoadingComplete(DataPacket packet)
     {
         Console.WriteLine(packet.client.RemoteEndPoint.ToString() + "UDP 연결 완료");
 

@@ -9,8 +9,6 @@ public class UnityServer
     public const short packetId = 1;
     public const short packetSource = 1;
     public const short packetLength = 2;
-    
-    public static bool[] connectionCheck;
 
     public static void Main(string[] args)
     {
@@ -23,31 +21,13 @@ public class UnityServer
         DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse("192.168.94.88"), 8800, receiveLock);
         DataHandler dataHandler = new DataHandler(receiveData, sendData, receiveLock, sendLock);
         DataSender dataSender = new DataSender(sendData, sendLock);
+        ConnectionChecker ConnectionChecker = new ConnectionChecker();
 
         while (true)
         {
-            connectionCheck = new bool[DataReceiver.clients.Count];
-
-            for (int userIndex = 0; userIndex < connectionCheck.Length; userIndex++)
+            if (Console.KeyAvailable)
             {
-                dataHandler.ServerConnectionCheck(DataReceiver.clients[userIndex]);
-            }
-
-            Thread.Sleep(3000);
-
-            for (int userIndex = 0; userIndex < connectionCheck.Length; userIndex++)
-            {
-                if (!connectionCheck[userIndex])
-                {
-                    DataPacket packet = new DataPacket(new byte[0], DataReceiver.clients[userIndex]);
-                    dataHandler.GameClose(packet);
-                    DataReceiver.clients.Remove(DataReceiver.clients[userIndex]);
-                }
-            }
-
-            if (System.Console.KeyAvailable)
-            {
-                string key = System.Console.ReadLine();
+                string key = Console.ReadLine();
 
                 if (key == "p" || key == "P")
                 {

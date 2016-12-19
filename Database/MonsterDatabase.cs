@@ -31,6 +31,7 @@ public class MonsterDatabase
 
     public void InitializeMonsterDatabase()
     {
+        instance = this;
         monsterData = new List<MonsterBaseData>();
 
         AddBaseData(new MonsterBaseData((int)MonsterId.Frog, "Frog"));
@@ -83,7 +84,7 @@ public class MonsterDatabase
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(9, 67, 24, 1600, 9));
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(10, 78, 45, 2000, 10));
 
-        GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(1, 20, 0, 300, 5));
+        GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(1, 20, 0, 210000000, 5));
         GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(2, 35, 2, 450, 5));
         GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(3, 50, 4, 700, 6));
         GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(4, 75, 8, 1000, 6));

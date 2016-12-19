@@ -6,11 +6,11 @@ using System.Collections.Generic;
 public class DataSender
 {
     Queue<DataPacket> msgs;
-    DataPacket tcpPacket;
+    DataPacket packet;
     Socket client;
     byte[] msg;
 
-    Object sendLock;
+    object sendLock;
 
     public DataSender(Queue<DataPacket> newQueue, object newSendLock)
     {
@@ -24,24 +24,24 @@ public class DataSender
     public void DataSend()
     {
         while (true)
-        {            
+        {
             if (msgs.Count != 0)
             {
                 lock (sendLock)
                 {
-                    tcpPacket = msgs.Dequeue();
+                    packet = msgs.Dequeue();
                 }
 
                 try
                 {
-                    client = tcpPacket.client;
-                    msg = tcpPacket.msg;
+                    client = packet.client;
+                    msg = packet.msg;
 
                     client.Send(msg);
                 }
                 catch(Exception e)
                 {
-                    Console.WriteLine("DataSender::DataSend 에러" + e.Message);
+                    Console.WriteLine("DataSender::DataSend 에러 " + e.Message);
                 }
             }
         }
