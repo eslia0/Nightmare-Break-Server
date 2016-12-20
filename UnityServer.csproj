@@ -35,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\AccountDatabase.cs" />
+    <Compile Include="Database\CharacterDatabase.cs" />
     <Compile Include="Database\DungeonDatabase.cs" />
     <Compile Include="Database\MonsterDatabase.cs" />
     <Compile Include="Database\UserData.cs" />

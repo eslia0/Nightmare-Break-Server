@@ -52,3 +52,8 @@ C:\Users\ele\Documents\Nightmare-Break-Server\bin\Debug\UnityServer.exe
 C:\Users\ele\Documents\Nightmare-Break-Server\bin\Debug\UnityServer.pdb
 C:\Users\ele\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.exe
 C:\Users\ele\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.pdb
+C:\Users\user\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.exe
+C:\Users\user\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.pdb
+C:\Users\user\Documents\Nightmare-Break-Server\bin\Debug\UnityServer.exe
+C:\Users\user\Documents\Nightmare-Break-Server\bin\Debug\UnityServer.pdb
+C:\Users\user\Documents\Nightmare-Break-Server\obj\x86\Debug\UnityServer.csprojResolveAssemblyReference.cache

@@ -36,33 +36,26 @@ public class DungeonDatabase
         {
             #region 잃어버린 곰 던전 1 ~ 10레벨
 
-            DungeonLevelData dungeonLevelData = new DungeonLevelData(i);
+            DungeonLevelData dungeonLevelData = new DungeonLevelData(i, 3);
 
             Stage missingBearStage0 = new Stage(0);
             Stage missingBearStage1 = new Stage(1);
             Stage missingBearStage2 = new Stage(2);
-            Stage missingBearStage3 = new Stage(3);
 
-            missingBearStage0.AddMonster((int)MonsterId.BlackBear, 1, 1);
+            //missingBearStage0.AddMonster((int)MonsterId.Frog, i, 4);
             //missingBearStage0.AddMonster((int)MonsterId.Duck, i, 4);
             //missingBearStage0.AddMonster((int)MonsterId.Rabbit, i, 1);
+            missingBearStage0.AddMonster((int)MonsterId.BlackBear, i, 1);
 
-            missingBearStage1.AddMonster((int)MonsterId.Frog, i, 4);
-            missingBearStage1.AddMonster((int)MonsterId.Duck, i, 4);
-            missingBearStage1.AddMonster((int)MonsterId.Bear, i, 1);
-
-            missingBearStage2.AddMonster((int)MonsterId.Frog, i, 3);
-            missingBearStage2.AddMonster((int)MonsterId.Duck, i, 3);
-            missingBearStage2.AddMonster((int)MonsterId.Rabbit, i, 3);
-
-            missingBearStage3.AddMonster((int)MonsterId.Rabbit, i, 5);
-            missingBearStage3.AddMonster((int)MonsterId.Duck, i, 4);
-            missingBearStage3.AddMonster((int)MonsterId.BlackBear, i, 1);
+            missingBearStage1.AddMonster((int)MonsterId.Frog, i, 3);
+            missingBearStage1.AddMonster((int)MonsterId.Duck, i, 3);
+            missingBearStage1.AddMonster((int)MonsterId.Rabbit, i, 2);
+            
+            missingBearStage2.AddMonster((int)MonsterId.BlackBear, i, 1);
 
             dungeonLevelData.AddStage(missingBearStage0);
             dungeonLevelData.AddStage(missingBearStage1);
             dungeonLevelData.AddStage(missingBearStage2);
-            dungeonLevelData.AddStage(missingBearStage3);
 
             dungeonList[(int)DungeonId.LostTeddyBear].AddLevelData(dungeonLevelData);
             #endregion
@@ -164,20 +157,31 @@ public class DungeonBaseData
 public class DungeonLevelData
 {
     int level;
+    int waveCount;
     List<Stage> stages;
 
     public int Level { get { return level; } }
+    public int WaveCount { get { return waveCount; } }
     public List<Stage> Stages { get { return stages; } }
 
     public DungeonLevelData()
     {
         level = 0;
+        waveCount = 0;
         stages = new List<Stage>();
     }
 
     public DungeonLevelData(int newLevel)
     {
         level = newLevel;
+        waveCount = 0;
+        stages = new List<Stage>();
+    }
+
+    public DungeonLevelData(int newLevel, int newWaveCount)
+    {
+        level = newLevel;
+        waveCount = newWaveCount;
         stages = new List<Stage>();
     }
 

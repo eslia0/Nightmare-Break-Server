@@ -84,7 +84,7 @@ public class MonsterDatabase
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(9, 67, 24, 1600, 9));
         GetBaseData((int)MonsterId.Bear).AddLevelData(new MonsterLevelData(10, 78, 45, 2000, 10));
 
-        GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(1, 20, 0, 210000000, 5));
+        GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(1, 20, 0, 300, 5));
         GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(2, 35, 2, 450, 5));
         GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(3, 50, 4, 700, 6));
         GetBaseData((int)MonsterId.BlackBear).AddLevelData(new MonsterLevelData(4, 75, 8, 1000, 6));
@@ -149,6 +149,18 @@ public class MonsterBaseData
         monsterLevelData = new List<MonsterLevelData>();
     }
 
+    public MonsterBaseData(MonsterBaseData newMonsterBaseData)
+    {
+        id = newMonsterBaseData.Id;
+        name = newMonsterBaseData.Name;
+        monsterLevelData = new List<MonsterLevelData>();
+
+        foreach (MonsterLevelData levelData in newMonsterBaseData.MonsterLevelData)
+        {
+            monsterLevelData.Add(new MonsterLevelData(levelData));
+        }
+    }
+
     public MonsterLevelData GetLevelData(int level)
     {
         for (int index = 0; index < monsterLevelData.Count; index++)
@@ -197,6 +209,15 @@ public class MonsterLevelData
         defense = 0;
         healthPoint = 0;
         moveSpeed = 1;
+    }
+
+    public MonsterLevelData(MonsterLevelData newMonsterLevelData)
+    {
+        level = newMonsterLevelData.Level;
+        attack = newMonsterLevelData.Attack;
+        defense = newMonsterLevelData.Defense;
+        healthPoint = newMonsterLevelData.HealthPoint;
+        moveSpeed = newMonsterLevelData.MoveSpeed;
     }
 
     public MonsterLevelData(int newLevel, int newAttack, int newDefense, int newHealthPoint, int newMoveSpeed)

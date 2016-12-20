@@ -18,6 +18,7 @@ public class CharacterStatusPacket : Packet<CharacterStatusData>
             ret &= Serialize(data.MagicPoint);
             ret &= Serialize(data.HpRegeneration);
             ret &= Serialize(data.MpRegeneration);
+            ret &= Serialize(data.MoveSpeed);
             ret &= Serialize(data.Attack);
             ret &= Serialize(data.Defense);
             ret &= Serialize(data.SkillPoint);
@@ -55,6 +56,7 @@ public class CharacterStatusPacket : Packet<CharacterStatusData>
             byte magicPoint = 0;
             byte hpRegeneration = 0;
             byte mpRegeneration = 0;
+            byte moveSpeed = 0;
             byte attack = 0;
             byte defense = 0;
             byte skillPoint = 0;
@@ -72,6 +74,7 @@ public class CharacterStatusPacket : Packet<CharacterStatusData>
             ret &= Deserialize(ref magicPoint);
             ret &= Deserialize(ref hpRegeneration);
             ret &= Deserialize(ref mpRegeneration);
+            ret &= Deserialize(ref moveSpeed);
             ret &= Deserialize(ref attack);
             ret &= Deserialize(ref defense);
             ret &= Deserialize(ref skillPoint);
@@ -88,7 +91,7 @@ public class CharacterStatusPacket : Packet<CharacterStatusData>
             }
 
             element = new CharacterStatusData(name, level, gender, hClass, exp, healthPoint, magicPoint, hpRegeneration,
-                mpRegeneration, attack, defense, skillPoint, dreamStone, skillLevel, equipLevel);
+                mpRegeneration, moveSpeed, attack, defense, skillPoint, dreamStone, skillLevel, equipLevel);
 
             return ret;
         }
@@ -126,6 +129,7 @@ public class CharacterStatusData
     byte magicPoint;
     byte hpRegeneration;
     byte mpRegeneration;
+    byte moveSpeed;
     byte attack;
     byte defense;
     byte skillPoint;
@@ -142,6 +146,7 @@ public class CharacterStatusData
     public byte MagicPoint { get { return magicPoint; } }
     public byte HpRegeneration { get { return hpRegeneration; } }
     public byte MpRegeneration { get { return mpRegeneration; } }
+    public byte MoveSpeed { get { return moveSpeed; } }
     public byte Attack { get { return attack; } }
     public byte Defense { get { return defense; } }
     public byte SkillPoint { get { return skillPoint; } }
@@ -159,6 +164,7 @@ public class CharacterStatusData
         magicPoint = 0;
         hpRegeneration = 0;
         mpRegeneration = 0;
+        moveSpeed = 0;
         attack = 0;
         defense = 0;
         skillPoint = 0;
@@ -167,8 +173,29 @@ public class CharacterStatusData
         equipLevel = new byte[HeroData.equipNum];
     }
 
+    public CharacterStatusData(HeroData heroData)
+    {
+        name = heroData.Name;
+        level = (byte)heroData.LevelData.Level;
+        gender = (byte)heroData.Gender;
+        hClass = (byte)heroData.HClass;
+        exp = (byte)heroData.CurrentExp;
+        exp = (byte)heroData.LevelData.MaxExp;
+        healthPoint = (byte)heroData.LevelData.HealthPoint;
+        magicPoint = (byte)heroData.LevelData.MagicPoint;
+        hpRegeneration = (byte)heroData.LevelData.HpRegeneration;
+        mpRegeneration = (byte)heroData.LevelData.MpRegeneration;
+        moveSpeed = (byte)heroData.LevelData.MoveSpeed;
+        attack = (byte)heroData.LevelData.Attack;
+        defense = (byte)heroData.LevelData.Defense;
+        skillPoint = (byte)heroData.SkillPoint;
+        dreamStone = (byte)heroData.DreamStone;
+        skillLevel = heroData.ByteSkillLevel;
+        equipLevel = heroData.ByteEquipLevel;
+    }
+
     public CharacterStatusData(string newName, byte newLevel, byte newGender, byte newClass, byte newExp, byte newHealthPoint, byte newMagicPoint,
-        byte newHpRegeneration, byte newMpRegeneration, byte newAttack, byte newDefense, byte newSkillPoint, byte newDreamStone, byte[] newSkillLevel, byte[] newEquipLevel)
+        byte newHpRegeneration, byte newMpRegeneration, byte newMoveSpeed, byte newAttack, byte newDefense, byte newSkillPoint, byte newDreamStone, byte[] newSkillLevel, byte[] newEquipLevel)
     {
         name = newName;
         level = newLevel;
@@ -179,6 +206,7 @@ public class CharacterStatusData
         magicPoint = newMagicPoint;
         hpRegeneration = newHpRegeneration;
         mpRegeneration = newMpRegeneration;
+        moveSpeed = newMoveSpeed;
         attack = newAttack;
         defense = newDefense;
         skillPoint = newSkillPoint;

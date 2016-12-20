@@ -94,7 +94,7 @@ public class CharacterList
 
         for (int i = 0; i < maxCharacterNum; i++)
         {
-            characterData[i] = new CharacterData(heroData[i].Name, (byte)heroData[i].Gender, (byte)heroData[i].HClass, (byte)heroData[i].Level);
+            characterData[i] = new CharacterData(heroData[i].Name, (byte)heroData[i].Gender, (byte)heroData[i].HClass, (byte)heroData[i].LevelData.Level);
         }
     }
 }

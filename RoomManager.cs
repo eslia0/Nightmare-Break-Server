@@ -154,7 +154,6 @@ public class Room
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
         playerNum = 0;
-        state = (int)RoomState.empty;
         roomUserData = new RoomUserData[RoomManager.maxPlayerNum];
         socket = new Socket[RoomManager.maxPlayerNum];
         ready = new bool[RoomManager.maxPlayerNum];
@@ -165,13 +164,14 @@ public class Room
         }
     }
 
-    public Room(string newRoomName, int newDungeonId, int newDungeonLevel, RoomUserData[] newRoomUserData, int newPlayerNum)
+    public Room(string newRoomName, int newDungeonId, int newDungeonLevel, RoomUserData[] newRoomUserData, int newPlayerNum, int newState)
     {
         roomName = newRoomName;
         dungeonName = "";
         dungeonId = newDungeonId;
         dungeonLevel = newDungeonLevel;
         playerNum = newPlayerNum;
+        state = newState;
         roomUserData = newRoomUserData;
         socket = new Socket[RoomManager.maxPlayerNum];
         ready = new bool[RoomManager.maxPlayerNum];
@@ -225,7 +225,7 @@ public class Room
             return -1;
         }
 
-        roomUserData[index] = new RoomUserData(newData.Name, newData.Gender, newData.HClass, newData.Level);
+        roomUserData[index] = new RoomUserData(newData.Name, newData.Gender, newData.HClass, newData.LevelData.Level);
         socket[index] = newPlayer;
         playerNum++;
 

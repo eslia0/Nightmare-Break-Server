@@ -31,7 +31,7 @@ public class UserData
     {
         for (int i = 0; i < maxHeroNum; i++)
         {
-            if (heroData[i].Level == 0)
+            if (heroData[i].LevelData.Level == 0)
             {
                 return i;
             }
@@ -78,15 +78,9 @@ public class HeroData
 
     string name;
     int gender;
-    int level;
     int hClass;
-    int exp;
-    int healthPoint;
-    int magicPoint;
-    int hpRegeneration;
-    int mpRegeneration;
-    int attack;
-    int defense;
+    int currentExp;
+    HeroLevelData levelData;
     int skillPoint;
     int dreamStone;
     int[] skillLevel;
@@ -94,15 +88,9 @@ public class HeroData
 
     public string Name { get { return name; } }
     public int Gender { get { return gender; } }
-    public int Level { get { return level; } }
     public int HClass { get { return hClass; } }
-    public int Exp { get { return exp; } }
-    public int HealthPoint { get { return healthPoint; } }
-    public int MagicPoint { get { return magicPoint; } }
-    public int HpRegeneration { get { return hpRegeneration; } }
-    public int MpRegeneration { get { return mpRegeneration; } }
-    public int Attack { get { return attack; } }
-    public int Defense { get { return defense; } }
+    public int CurrentExp { get { return currentExp; } }
+    public HeroLevelData LevelData { get {return levelData; } }
     public int SkillPoint { get { return skillPoint; } }
     public int DreamStone { get { return dreamStone; } }
     public int[] SkillLevel { get { return skillLevel; } }
@@ -139,15 +127,10 @@ public class HeroData
     public HeroData()
     {
         name = "Hero";
-        level = 0;
+        gender = 0;
         hClass = 0;
-        exp = 0;
-        healthPoint = 0;
-        magicPoint = 0;
-        hpRegeneration = 0;
-        mpRegeneration = 0;
-        attack = 0;
-        defense = 0;
+        currentExp = 0;
+        levelData = new HeroLevelData();
         skillPoint = 0;
         dreamStone = 0;
         skillLevel = new int[skillNum];
@@ -157,16 +140,10 @@ public class HeroData
     public HeroData(string newName, int newGender, int newClass)
     {   //차후 데이터 베이스 만들때 그 데이터를 가져와서 초기화 하도록 변경
         name = newName;
-        level = 1;
         gender = newGender;
         hClass = newClass;
-        exp = 0;
-        healthPoint = 100;
-        magicPoint = 20;
-        hpRegeneration = 0;
-        mpRegeneration = 0;
-        attack = 0;
-        defense = 0;
+        currentExp = 0;
+        levelData = CharacterDatabase.Instance.GetBaseData(hClass).GetLevelData(1);
         skillPoint = 0;
         dreamStone = 0;
         skillLevel = new int[skillNum];
@@ -176,25 +153,15 @@ public class HeroData
         for (int i = 0; i < equipNum; i++) { equipLevel[i] = 1; }
     }
 
-    public CharacterStatusData GetCharacterStatusData()
-    {
-        CharacterStatusData characterStatusData = new CharacterStatusData(Name, (byte)Level, (byte)Gender, (byte)HClass, (byte)Exp, (byte)HealthPoint,
-            (byte)MagicPoint, (byte)HpRegeneration, (byte)MpRegeneration, (byte)Attack, (byte)Defense, (byte)skillPoint, (byte)DreamStone, ByteSkillLevel, ByteSkillLevel);
-
-        return characterStatusData;
-    }
-
     //경험치 획득 및 레벨업
     public void GainExp(int amount)
     {
-        exp += amount;
+        currentExp += amount;
 
-        int maxExp = 100;   //차후에 데이터베이스에서 가져오도록 변경
-
-        if (exp > maxExp)
+        if (currentExp > LevelData.MaxExp)
         {
-            level ++;
-            exp -= maxExp;
+            levelData =new HeroLevelData(CharacterDatabase.Instance.GetBaseData(hClass).GetLevelData(levelData.Level + 1));
+            currentExp -= LevelData.MaxExp;
             skillPoint++;
         }
     }

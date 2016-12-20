@@ -44,6 +44,7 @@ public class DataHandler
     AccountDatabase database;
     DungeonDatabase dungeonDatabase;
     MonsterDatabase monsterDatabase;
+    CharacterDatabase characterDatabase;
     RoomManager roomManager;
 
     object receiveLock;
@@ -94,10 +95,14 @@ public class DataHandler
 
         database = AccountDatabase.Instance;
         database.InitailizeDatabase();
+        monsterDatabase = MonsterDatabase.Instance;
+        monsterDatabase.InitializeMonsterDatabase();
         dungeonDatabase = DungeonDatabase.Instance;
         dungeonDatabase.InitializeDungeonDatabase();
         monsterDatabase = MonsterDatabase.Instance;
         monsterDatabase.InitializeMonsterDatabase();
+        characterDatabase = CharacterDatabase.Instance;
+        characterDatabase.InitializeCharacterDatabase();
         roomManager = new RoomManager();
 
         Thread handleThread = new Thread(new ThreadStart(DataHandle));
@@ -602,7 +607,7 @@ public class DataHandler
         }
         catch
         {
-            Console.WriteLine("DataHandler::Createcharacter.CreateHero 에러");
+            Console.WriteLine("DataHandler::CreateCharacter.CreateHero 에러");
             result = Result.Fail;
         }
 
@@ -712,7 +717,7 @@ public class DataHandler
         userState[id].characterId = character;
 
         HeroData heroData = database.GetHeroData(id, character);
-        CharacterStatusData characterStatusData = heroData.GetCharacterStatusData();
+        CharacterStatusData characterStatusData = new CharacterStatusData(heroData);
         CharacterStatusPacket characterStatusPacket = new CharacterStatusPacket(characterStatusData);
         characterStatusPacket.SetPacketId((int)ServerPacketId.CharacterStatus);
 
@@ -862,6 +867,21 @@ public class DataHandler
         lock (sendLock)
         {
             sendMsgs.Enqueue(packet);
+        }
+
+        List<string> clients = new List<string>(loginUser.Values);
+
+        foreach (string client in clients)
+        {
+            if (userState.ContainsKey(client))
+            {
+                if (userState[client].state == -1)
+                {
+                    packet = new DataPacket(new byte[0], FindSocketWithId(client));
+
+                    RequestRoomList(packet);
+                }
+            }
         }
     }
 
@@ -1046,16 +1066,20 @@ public class DataHandler
             return;
         }
 
+        roomManager.Room[roomNum].GameStart();
+
         byte result = (byte) Result.Success;
 
         ResultData resultData = new ResultData(result);
-        ResultPacket resultDataPacket = new ResultPacket(resultData);
-        resultDataPacket.SetPacketId((int)ServerPacketId.StartGame);
+        ResultPacket resultPacket = new ResultPacket(resultData);
 
-        byte[] msg = CreatePacket(resultDataPacket);
-        
+        bool setHost = false;
+
         for (int i = 0; i < RoomManager.maxPlayerNum; i++)
         {
+            resultPacket.SetPacketId((int)ServerPacketId.StartGame);
+            byte[] msg = CreatePacket(resultPacket);
+
             if (roomManager.Room[roomNum].Socket[i] != null)
             {
                 Console.WriteLine(i + "번 유저 : " + roomManager.Room[roomNum].Socket[i].RemoteEndPoint.ToString());
@@ -1064,6 +1088,20 @@ public class DataHandler
                 lock (sendLock)
                 {
                     sendMsgs.Enqueue(packet);
+                }
+
+                if (!setHost)
+                {
+                    setHost = true;
+                    resultPacket.SetPacketId((int)ServerPacketId.SetHost);
+                    msg = CreatePacket(resultPacket);
+
+                    packet = new DataPacket(msg, roomManager.Room[roomNum].Socket[i]);
+
+                    lock (sendLock)
+                    {
+                        sendMsgs.Enqueue(packet);
+                    }
                 }
             }
         }
@@ -1112,14 +1150,12 @@ public class DataHandler
 
         RequestDungeonDataPacket requestDungeonDataPacket = new RequestDungeonDataPacket(packet.msg);
         RequestDungeonData requestDungeonData = requestDungeonDataPacket.GetData();
-
-        Console.WriteLine(requestDungeonData.DungeonId + ", "+ requestDungeonData.DungeonLevel);
+        
         DungeonLevelData dungeonLevelData = dungeonDatabase.GetDungeonBaseData(requestDungeonData.DungeonId).GetLevelData(requestDungeonData.DungeonLevel);
         
         MonsterSpawnListPacket monsterSpawnListPacket = new MonsterSpawnListPacket(dungeonLevelData);
         monsterSpawnListPacket.SetPacketId((int)ServerPacketId.MonsterSpawnList);
-
-
+        
         byte[] msg = CreatePacket(monsterSpawnListPacket);
 
         packet = new DataPacket(msg, packet.client);
@@ -1151,8 +1187,8 @@ public class DataHandler
                 int monsterId = dungeonLevelData.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterId;
                 int monsterLevel = dungeonLevelData.Stages[stageIndex].MonsterSpawnData[monsterIndex].MonsterLevel;
 
-                monsterBaseData[dataIndex] = monsterDatabase.GetBaseData(monsterId);
-                MonsterLevelData monsterLevelData = monsterDatabase.GetBaseData(monsterId).GetLevelData(monsterLevel);
+                monsterBaseData[dataIndex] = new MonsterBaseData(monsterDatabase.GetBaseData(monsterId));
+                MonsterLevelData monsterLevelData = new MonsterLevelData(monsterDatabase.GetBaseData(monsterId).GetLevelData(monsterLevel));
                 monsterBaseData[dataIndex].MonsterLevelData.Clear();
                 monsterBaseData[dataIndex].AddLevelData(monsterLevelData);
                 dataIndex++;
@@ -1162,23 +1198,7 @@ public class DataHandler
         MonsterStatusData monsterStatusData = new MonsterStatusData((byte)monsterNum, monsterBaseData);
         MonsterStatusPacket monsterStatusPacket = new MonsterStatusPacket(monsterStatusData);
         monsterStatusPacket.SetPacketId((int)ServerPacketId.MonsterStatusData);
-
-        Console.WriteLine(monsterStatusData.MonsterNum);
-        for (int i = 0; i < monsterStatusData.MonsterNum; i++)
-        {
-            Console.WriteLine(monsterStatusData.MonsterData[i].Id);
-            Console.WriteLine(monsterStatusData.MonsterData[i].Name);
-
-            for (int j = 0; j < monsterStatusData.MonsterData[i].MonsterLevelData.Count; j++)
-            {
-                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].Attack);
-                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].Defense);
-                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].HealthPoint);
-                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].Level);
-                Console.WriteLine(monsterStatusData.MonsterData[i].MonsterLevelData[j].MoveSpeed);
-            }
-        }
-
+        
         byte[] msg = CreatePacket(monsterStatusPacket);
 
         packet = new DataPacket(msg, packet.client);
@@ -1225,6 +1245,21 @@ public class DataHandler
                 }
             }            
         }        
+    }
+
+    Socket FindSocketWithId(string id)
+    {
+        List<Socket> clients = new List<Socket>(loginUser.Keys);
+
+        foreach (Socket user in clients)
+        {
+            if (loginUser[user] == id)
+            {
+                return user;
+            }
+        }
+
+        return null;
     }
 
     //패킷의 헤더 생성

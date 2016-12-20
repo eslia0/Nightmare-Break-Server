@@ -18,7 +18,21 @@ public class UnityServer
         object receiveLock = new object();
         object sendLock = new object();
 
-        DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse("192.168.94.88"), 8800, receiveLock);
+        string myIP = "";
+
+        for (int addressIndex = 0; addressIndex < Dns.GetHostAddresses(Dns.GetHostName()).Length; addressIndex++)
+        {
+            string ip = Dns.GetHostAddresses(Dns.GetHostName())[addressIndex].ToString();
+
+            if (ip.Length >= 7 || ip.Length <= 15)
+            {
+                myIP = Dns.GetHostAddresses(Dns.GetHostName())[addressIndex].ToString();
+            }
+        }
+
+        Console.WriteLine(myIP);
+
+        DataReceiver dataReceiver = new DataReceiver(receiveData, IPAddress.Parse(myIP), 8800, receiveLock);
         DataHandler dataHandler = new DataHandler(receiveData, sendData, receiveLock, sendLock);
         DataSender dataSender = new DataSender(sendData, sendLock);
         ConnectionChecker ConnectionChecker = new ConnectionChecker();
